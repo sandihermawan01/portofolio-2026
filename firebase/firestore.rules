@@ -1,0 +1,84 @@
+rules_version = '2';
+
+/**
+ * Firestore Security Rules — Monochrome Retro Portfolio
+ *
+ * Model:
+ *  - All privileged writes in this app actually go through Next.js Server
+ *    Actions / Route Handlers using the Firebase ADMIN SDK, which BYPASSES
+ *    these rules entirely. That is why every server action independently
+ *    calls `requireAdmin()` (see src/lib/firebase/auth.ts) before touching
+ *    Firestore — these rules are the second, independent layer of defense,
+ *    in case a client ever talks to Firestore directly with the client SDK
+ *    (now, or in a future change to this app).
+ *  - "Admin" here means a Firebase Auth user whose ID token carries the
+ *    custom claim `admin: true`, set out-of-band via
+ *    scripts/set-admin-claim.ts. There is no public sign-up and no way to
+ *    self-grant this claim.
+ *  - `messages` (contact form submissions) has NO client access at all,
+ *    in either direction — not even for admins — matching the product
+ *    requirement to never surface visitor messages through a public or
+ *    client-readable path. The only writer is the Admin SDK from the
+ *    `/api/contact` route.
+ */
+
+function isAdmin() {
+  return request.auth != null && request.auth.token.admin == true;
+}
+
+function isValidSocialLink(link) {
+  return link.keys().hasOnly(['id', 'label', 'url'])
+    && link.id is string
+    && link.label is string && link.label.size() > 0 && link.label.size() <= 40
+    && link.url is string && link.url.size() > 0;
+}
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // site/profile, site/contact
+    match /site/{docId} {
+      allow read: if docId in ['profile', 'contact'];
+      allow write: if isAdmin()
+        && request.resource.data.keys().hasAll(docId == 'profile'
+            ? ['name', 'role', 'bio', 'skills', 'socialLinks']
+            : ['email', 'socialLinks'])
+        && (!('socialLinks' in request.resource.data)
+            || request.resource.data.socialLinks.size() <= 12);
+    }
+
+    match /experiences/{experienceId} {
+      allow read: if true;
+      allow create, update: if isAdmin()
+        && request.resource.data.title is string && request.resource.data.title.size() > 0
+        && request.resource.data.company is string && request.resource.data.company.size() > 0
+        && request.resource.data.startDate is string;
+      allow delete: if isAdmin();
+    }
+
+    match /projects/{projectId} {
+      // Public may only ever see published projects. Draft projects are
+      // invisible to anonymous/non-admin reads at the rules layer too, not
+      // just filtered out in application code.
+      allow read: if resource.data.status == 'published' || isAdmin();
+      allow create, update: if isAdmin()
+        && request.resource.data.title is string && request.resource.data.title.size() > 0
+        && request.resource.data.slug is string
+        && request.resource.data.slug.matches('^[a-z0-9]+(-[a-z0-9]+)*$')
+        && request.resource.data.status in ['draft', 'published'];
+      allow delete: if isAdmin();
+    }
+
+    // Contact form submissions. Deliberately no client read/write in either
+    // direction — written only by the Admin SDK from the server, read only
+    // via the Firebase Console/Admin SDK tooling if the owner wants them.
+    match /messages/{messageId} {
+      allow read, write: if false;
+    }
+
+    // Deny everything else by default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
