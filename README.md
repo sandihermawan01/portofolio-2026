@@ -1,4 +1,4 @@
-# Portfolio — Monochrome Retro
+# My New Portfolio 2026
 
 Website portofolio personal full-stack: area publik (About, Experience,
 Project, Contact) + dashboard admin privat untuk mengelola konten, dibangun
