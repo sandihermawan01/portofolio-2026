@@ -70,7 +70,7 @@ export function GithubConfigForm({ initialData }: { initialData: GithubConfig })
       </div>
 
       <div className="space-y-2">
-        <Label>Repository yang ditampilkan ("Currently Developing")</Label>
+        <Label>Repository yang ditampilkan (&ldquo;Currently Developing&rdquo;)</Label>
         <Controller
           control={control}
           name="selectedRepos"

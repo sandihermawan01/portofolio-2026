@@ -57,6 +57,16 @@ const serverSchema = z.object({
   CLOUDINARY_CLOUD_NAME: z.string().min(1, "CLOUDINARY_CLOUD_NAME is required"),
   CLOUDINARY_API_KEY: z.string().min(1, "CLOUDINARY_API_KEY is required"),
   CLOUDINARY_API_SECRET: z.string().min(1, "CLOUDINARY_API_SECRET is required"),
+  // GitHub Activity integration — entirely OPTIONAL. Unlike Firebase/
+  // Cloudinary above, a missing value here must never crash the app: the
+  // feature simply renders an empty/"not configured" state (see
+  // src/lib/github/client.ts and src/app/(public)/github/page.tsx). Never
+  // prefix any of these with NEXT_PUBLIC_ — the PAT and both secrets must
+  // stay server-only.
+  GITHUB_TOKEN: z.string().optional(),
+  GITHUB_WEBHOOK_SECRET: z.string().optional(),
+  GITHUB_SYNC_CRON_SECRET: z.string().optional(),
+  GITHUB_SYNC_CACHE_TTL_MINUTES: z.coerce.number().int().positive().default(360),
 });
 
 let cachedServerEnv: z.infer<typeof serverSchema> | null = null;
@@ -85,6 +95,10 @@ export function getServerEnv() {
     CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
     CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
+    GITHUB_TOKEN: process.env.GITHUB_TOKEN,
+    GITHUB_WEBHOOK_SECRET: process.env.GITHUB_WEBHOOK_SECRET,
+    GITHUB_SYNC_CRON_SECRET: process.env.GITHUB_SYNC_CRON_SECRET,
+    GITHUB_SYNC_CACHE_TTL_MINUTES: process.env.GITHUB_SYNC_CACHE_TTL_MINUTES,
   });
 
   if (!parsed.success) {
@@ -104,4 +118,12 @@ export function getAdminAllowlist(): string[] {
     .ADMIN_UID_ALLOWLIST.split(",")
     .map((uid) => uid.trim())
     .filter(Boolean);
+}
+
+/** Whether the GitHub Activity feature has enough configuration to call the
+ * GitHub API at all. Checked before every sync attempt so a portfolio
+ * owner who hasn't set up GITHUB_TOKEN yet gets a clear "not configured"
+ * state instead of a confusing fetch failure. */
+export function isGithubIntegrationConfigured(): boolean {
+  return Boolean(getServerEnv().GITHUB_TOKEN);
 }
