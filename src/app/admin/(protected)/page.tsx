@@ -1,14 +1,17 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getDashboardStats } from "@/features/admin/dashboard";
+import { getGithubConfig, getGithubCache } from "@/features/github/queries";
 import { StatCard } from "@/components/admin/stat-card";
 import { EmptyState } from "@/components/portfolio/empty-state";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { formatDateTime } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Overview — Admin" };
 
 export default async function AdminOverviewPage() {
-  const stats = await getDashboardStats();
+  const [stats, githubConfig, githubCache] = await Promise.all([getDashboardStats(), getGithubConfig(), getGithubCache()]);
   const hasAnyContent = stats.publishedProjectCount + stats.draftProjectCount + stats.experienceCount > 0;
 
   return (
@@ -43,6 +46,21 @@ export default async function AdminOverviewPage() {
         </Button>
         <Button asChild variant="outline">
           <Link href="/admin/settings">Pengaturan Contact</Link>
+        </Button>
+      </div>
+
+      {/* Short summary only, not a full stat grid — the full detail (repo
+          list, sync errors, manual sync button) lives at /admin/github. */}
+      <div className="mt-10 flex flex-wrap items-center gap-3 border-t border-border pt-6">
+        <Badge variant={githubConfig.widgetVisible ? "solid" : "outline"}>
+          GitHub Activity: {githubConfig.widgetVisible ? "Aktif" : "Nonaktif"}
+        </Badge>
+        <p className="text-sm text-muted-foreground">
+          {githubConfig.selectedRepos.length} repository dipilih
+          {githubCache.lastSyncedAt ? ` · sync terakhir ${formatDateTime(githubCache.lastSyncedAt)}` : " · belum pernah sync"}
+        </p>
+        <Button asChild variant="link" size="sm" className="ml-auto">
+          <Link href="/admin/github">Kelola GitHub Activity →</Link>
         </Button>
       </div>
     </div>

@@ -8,16 +8,29 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger, SheetContent, SheetTitle, SheetClose } from "@/components/ui/sheet";
 
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
   { href: "/about", label: "About" },
   { href: "/experience", label: "Experience" },
   { href: "/project", label: "Project" },
   { href: "/contact", label: "Contact" },
 ];
 
-export function Navbar({ ownerName }: { ownerName: string }) {
+/**
+ * `showGithubLink` comes from `github/config.widgetVisible` (fetched in
+ * `(public)/layout.tsx`) — the nav item is inserted before "Contact" only
+ * when the admin has actually turned the public /github page on, so the
+ * navbar never links to a page that would 404. See
+ * `docs/ARCHITECTURE.md` for why this deviates from the original "keep
+ * the navbar at exactly About/Experience/Project/Contact" spec — the
+ * owner explicitly asked for a 5th item once the feature was live.
+ */
+export function Navbar({ ownerName, showGithubLink = false }: { ownerName: string; showGithubLink?: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = React.useState(false);
+
+  const NAV_ITEMS = showGithubLink
+    ? [...BASE_NAV_ITEMS.slice(0, 3), { href: "/github", label: "GitHub" }, ...BASE_NAV_ITEMS.slice(3)]
+    : BASE_NAV_ITEMS;
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70">
