@@ -78,6 +78,52 @@ Tidak ada jalur baca/tulis client (publik maupun admin) untuk koleksi ini di
 Firestore Rules — lihat `docs/ARCHITECTURE.md` bagian "Penyimpanan pesan
 contact form".
 
+## `github/config` (single document) — pengaturan GitHub Activity
+
+Dikelola lewat Admin Dashboard (`/admin/github`); lihat
+`docs/ARCHITECTURE.md` bagian "GitHub Activity" untuk desain lengkapnya.
+
+| Field | Type | Keterangan |
+|---|---|---|
+| `username` | string \| undefined | akun GitHub untuk contribution heatmap; string kosong dari form dianggap "belum diset" |
+| `selectedRepos` | array (maks. 12) | lihat tabel di bawah |
+| `selectedRepos[].owner` | string | pemilik repo di GitHub |
+| `selectedRepos[].repo` | string | nama repo |
+| `selectedRepos[].status` | enum | `"active" \| "planning" \| "paused" \| "completed"` — murni input admin, GitHub tidak punya konsep ini |
+| `selectedRepos[].sortOrder` | number | urutan tampil di "Currently Developing" |
+| `widgetVisible` | boolean | default `false`; saklar utama untuk halaman publik `/github` |
+| `updatedAt` | Timestamp (server) | |
+
+Hanya field di atas yang disimpan di `selectedRepos` — nama, deskripsi,
+bahasa, topics, dan URL repo **tidak** disimpan di sini; semua itu diambil
+otomatis dari GitHub API saat sync dan disimpan di `github/cache` di bawah.
+
+## `github/cache` (single document) — hasil sync GitHub, machine-written
+
+**Tidak pernah ditulis lewat client SDK oleh siapa pun, termasuk admin** —
+satu-satunya penulis adalah Admin SDK dari `syncGithubActivity()`
+(`src/lib/github/sync.ts`), dipanggil dari cron, webhook, atau tombol
+"Sync Now". Lihat `firebase/firestore.rules`.
+
+| Field | Type | Keterangan |
+|---|---|---|
+| `contributions` | object \| null | `{ totalContributions, weeks: [{ days: [{ date, count, level }] }] }`; `level` (0–4) dihitung di server dari kuartil jumlah kontribusi |
+| `contributionsFetchedAt` | Timestamp (server) \| null | |
+| `repos` | array | metadata repo terpilih, diurutkan oleh `sortOrder` — lihat tabel di bawah |
+| `repos[].owner`, `.repo`, `.status`, `.sortOrder` | — | disalin dari `github/config.selectedRepos` saat sync |
+| `repos[].name`, `.description`, `.language`, `.topics`, `.url`, `.updatedAt`, `.pushedAt` | — | diambil langsung dari GitHub REST API |
+| `reposFetchedAt` | Timestamp (server) \| null | |
+| `commits` | array (maks. 3) | tepat 3 commit terbaru lintas seluruh `selectedRepos`, diurutkan `committedAt` descending |
+| `commits[].repoFullName`, `.sha`, `.shortSha`, `.message`, `.url`, `.committedAt` | — | |
+| `commitsFetchedAt` | Timestamp (server) \| null | |
+| `lastSyncedAt` | Timestamp (server) \| null | dipakai UI publik untuk menghitung "data mungkin tidak terbaru" bersama `GITHUB_SYNC_CACHE_TTL_MINUTES` |
+| `lastSyncErrors` | string[] | error non-fatal dari sync terakhir, per bagian — tidak pernah memuat token mentah |
+
+Setiap field `*FetchedAt`/`contributions`/`repos`/`commits` hanya ditimpa
+saat fetch bagian itu **berhasil** — kegagalan satu bagian mempertahankan
+nilai cache sebelumnya (lihat "Fallback-on-failure" di
+`docs/ARCHITECTURE.md`).
+
 ## Konvensi umum
 
 - Semua `updatedAt`/`createdAt` memakai `FieldValue.serverTimestamp()` —

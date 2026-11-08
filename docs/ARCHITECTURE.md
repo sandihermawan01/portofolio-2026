@@ -109,6 +109,83 @@ Security Rules penyedia storage), tidak ada lagi lapisan "Storage Rules"
 terpisah seperti versi Firebase Storage sebelumnya — `requireAdmin()` +
 validasi di atas **adalah** lapisan keamanannya.
 
+## GitHub Activity
+
+Section publik opsional (`/github`, ditautkan dari halaman Project) yang
+menampilkan contribution heatmap 12 bulan, daftar repository "Currently
+Developing" pilihan admin, dan 3 commit terbaru lintas repository — lihat
+bagian 3.6 README untuk setup token/webhook/cron.
+
+**Data flow**: semua panggilan ke GitHub (GraphQL untuk contribution
+calendar, REST untuk metadata repo + commit) terjadi **hanya di server**
+(`src/lib/github/client.ts`), tidak pernah dari browser. Hasilnya di-cache
+ke Firestore `github/cache` oleh `src/lib/github/sync.ts`, dan halaman
+publik hanya membaca cache tersebut (`src/features/github/queries.ts`) —
+request pengunjung tidak pernah menunggu GitHub API secara langsung.
+
+**Pemicu sync** (ketiganya memanggil fungsi `syncGithubActivity()` yang
+sama):
+
+1. **Cron** — `GET/POST /api/github/sync`, dijadwalkan tiap 6 jam
+   (`vercel.json`), dilindungi shared secret `GITHUB_SYNC_CRON_SECRET` di
+   header `Authorization: Bearer`. **Catatan penting**: secret ini
+   sengaja **tidak** bernama `CRON_SECRET`, jadi Vercel Cron tidak
+   mengirim header itu secara otomatis — scheduler eksternal atau
+   penggantian nama variabel diperlukan untuk produksi (lihat komentar di
+   `src/app/api/github/sync/route.ts` dan README bagian 3.6).
+2. **Webhook** — `POST /api/github/webhook`, dipicu GitHub setiap kali ada
+   `push` ke repository yang dipantau, supaya cache mendekati real-time
+   tanpa menunggu jadwal cron. Signature `X-Hub-Signature-256` diverifikasi
+   dengan HMAC-SHA256 + `timingSafeEqual` (constant-time, lihat
+   `src/lib/github/webhook.ts`) sebelum payload dipercaya sama sekali; repo
+   yang di-push dicocokkan dulu ke `selectedRepos` sehingga push ke
+   repository yang tidak dipantau tidak memicu sync sama sekali.
+3. **Manual** — tombol "Sync Now" di `/admin/github`
+   (`syncGithubActivityAction`), untuk admin yang ingin refresh segera
+   tanpa menunggu.
+
+**Fallback-on-failure, per bagian**: `syncGithubActivity()` mengambil
+contribution calendar, metadata tiap repo, dan commit tiap repo secara
+independen. Kegagalan satu bagian (mis. GitHub API rate-limited saat
+mengambil commit salah satu repo) **tidak pernah menghapus** nilai cache
+bagian itu yang sebelumnya berhasil — hanya bagian yang berhasil fetch
+ulang yang ditimpa (`Firestore .set(..., { merge: true })`). Error
+dikumpulkan ke `lastSyncErrors` di cache sehingga admin bisa melihat apa
+yang gagal tanpa membuka log server, dan halaman publik menampilkan
+peringatan "data mungkin tidak terbaru" bila ada error terakhir **atau**
+bila `lastSyncedAt` sudah lebih tua dari `GITHUB_SYNC_CACHE_TTL_MINUTES`
+(default 6 jam) — jadi sync yang diam-diam berhenti berjalan (bukan cuma
+yang gagal dengan error) tetap terlihat.
+
+**Model hybrid admin-curated**: GitHub tidak punya konsep "project yang
+sedang saya kerjakan" atau status seperti itu, jadi `status` dan
+`sortOrder` tiap repo di `github/config.selectedRepos` murni input admin
+(lihat `docs/SCHEMA.md`), sementara nama, deskripsi, bahasa, topics, dan
+URL diambil otomatis dari GitHub API saat sync. Menyimpan konfigurasi
+(`updateGithubConfigAction`) memverifikasi setiap repo yang dipilih lewat
+panggilan langsung ke GitHub (harus ada, publik, dan bisa diakses) sebelum
+disimpan — repo yang salah ketik atau sudah di-private-kan gagal disimpan
+dengan pesan error spesifik, bukan diam-diam diabaikan.
+
+**Keamanan**: `GITHUB_TOKEN` server-only (tidak pernah di-prefix
+`NEXT_PUBLIC_`), hanya butuh scope baca publik minimum (lihat README);
+`fetchRepoMetadata()` menolak repo yang ternyata **private** meski token
+punya akses ke sana, karena fitur ini murni untuk menampilkan aktivitas
+publik. `github/cache` di Firestore Rules **tidak bisa ditulis oleh
+siapa pun lewat client SDK, termasuk admin** — satu-satunya penulis adalah
+Admin SDK dari `syncGithubActivity()`; `github/config` bisa ditulis admin
+(lewat Server Action, yang juga lapisan rules sebagai pertahanan kedua)
+tapi tidak oleh siapa pun yang lain. Lihat `firebase/firestore.rules` dan
+`tests/rules/firestore.rules.test.ts`.
+
+**Degradasi tanpa konfigurasi**: tanpa `GITHUB_TOKEN`, `syncGithubActivity()`
+langsung berhenti dengan satu error yang jelas (bukan mencoba dan gagal
+berkali-kali), dan setiap bagian di UI publik (`GithubActivitySection`)
+punya empty state sendiri-sendiri — username kosong tidak menyembunyikan
+daftar repo, daftar repo kosong tidak menyembunyikan heatmap, dst. Halaman
+`/github` sendiri me-render `404` selama admin belum menyalakan
+`widgetVisible`, persis seperti project berstatus draft.
+
 ## Caching & Revalidation
 
 - Halaman publik menggunakan `revalidate = 0` pada beberapa route (lihat

@@ -4,6 +4,7 @@ import { SectionHeading } from "@/components/portfolio/section-heading";
 import { EmptyState } from "@/components/portfolio/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { getPublishedProjects } from "@/features/projects/queries";
+import { getGithubConfig } from "@/features/github/queries";
 
 export const metadata: Metadata = {
   title: "Project",
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ProjectListPage() {
-  const projects = await getPublishedProjects();
+  const [projects, githubConfig] = await Promise.all([getPublishedProjects(), getGithubConfig()]);
 
   return (
     <div className="container-editorial py-16">
@@ -46,6 +47,19 @@ export default async function ProjectListPage() {
               )}
             </Link>
           ))}
+        </div>
+      )}
+
+      {githubConfig.widgetVisible && (
+        <div className="rule mt-16 pt-8">
+          <Link href="/github" className="group flex items-center justify-between">
+            <span>
+              <span className="index-label">GITHUB ACTIVITY</span>
+              <span className="mt-1 block font-display text-xl font-medium group-hover:underline">
+                Lihat apa yang sedang dikerjakan di GitHub →
+              </span>
+            </span>
+          </Link>
         </div>
       )}
     </div>

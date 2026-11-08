@@ -4,6 +4,7 @@ import { experienceSchema } from "@/lib/validations/experience";
 import { projectSchema } from "@/lib/validations/project";
 import { contactFormSchema } from "@/lib/validations/contact";
 import { slugSchema, httpsUrlSchema } from "@/lib/validations/common";
+import { githubUsernameSchema, repoSelectionSchema, githubConfigSchema } from "@/lib/validations/github";
 
 describe("profileSchema", () => {
   it("accepts a minimal valid profile", () => {
@@ -119,6 +120,81 @@ describe("contactFormSchema", () => {
       message: "This is a long enough spam message.",
       website: "http://spam.example.com",
     });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("githubUsernameSchema", () => {
+  it("accepts a valid username", () => {
+    expect(githubUsernameSchema.safeParse("zsans").success).toBe(true);
+  });
+
+  it("accepts single internal hyphens", () => {
+    expect(githubUsernameSchema.safeParse("z-sans-dev").success).toBe(true);
+  });
+
+  it("rejects a leading hyphen", () => {
+    expect(githubUsernameSchema.safeParse("-zsans").success).toBe(false);
+  });
+
+  it("rejects a trailing hyphen", () => {
+    expect(githubUsernameSchema.safeParse("zsans-").success).toBe(false);
+  });
+
+  it("rejects consecutive hyphens", () => {
+    expect(githubUsernameSchema.safeParse("z--sans").success).toBe(false);
+  });
+
+  it("rejects an empty string", () => {
+    expect(githubUsernameSchema.safeParse("").success).toBe(false);
+  });
+
+  it("rejects a username over 39 characters", () => {
+    expect(githubUsernameSchema.safeParse("a".repeat(40)).success).toBe(false);
+  });
+});
+
+describe("repoSelectionSchema", () => {
+  const base = { owner: "zsans", repo: "portfolio", status: "active" as const, sortOrder: 0 };
+
+  it("accepts a valid selection", () => {
+    expect(repoSelectionSchema.safeParse(base).success).toBe(true);
+  });
+
+  it("rejects a status outside the allowed enum", () => {
+    expect(repoSelectionSchema.safeParse({ ...base, status: "archived" }).success).toBe(false);
+  });
+
+  it("rejects a repo name with invalid characters", () => {
+    expect(repoSelectionSchema.safeParse({ ...base, repo: "not a valid repo name!" }).success).toBe(false);
+  });
+});
+
+describe("githubConfigSchema", () => {
+  it("accepts an empty, unconfigured config", () => {
+    const result = githubConfigSchema.safeParse({ selectedRepos: [], widgetVisible: false });
+    expect(result.success).toBe(true);
+  });
+
+  it("treats an empty-string username as unset", () => {
+    const result = githubConfigSchema.safeParse({ username: "", selectedRepos: [], widgetVisible: false });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.username).toBeUndefined();
+  });
+
+  it("rejects more than 12 selected repos", () => {
+    const tooMany = Array.from({ length: 13 }, (_, i) => ({
+      owner: "zsans",
+      repo: `repo-${i}`,
+      status: "active" as const,
+      sortOrder: i,
+    }));
+    const result = githubConfigSchema.safeParse({ selectedRepos: tooMany, widgetVisible: false });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects an invalid username even when provided", () => {
+    const result = githubConfigSchema.safeParse({ username: "-bad", selectedRepos: [], widgetVisible: false });
     expect(result.success).toBe(false);
   });
 });
