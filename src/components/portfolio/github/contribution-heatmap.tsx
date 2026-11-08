@@ -22,11 +22,17 @@ export function ContributionHeatmap({ calendar }: { calendar: ContributionCalend
       >
         {calendar.weeks.map((week, wi) => (
           <div key={wi} className="flex flex-col gap-[3px]">
-            {week.days.map((day) => (
+            {week.days.map((day, di) => (
               <div
                 key={day.date}
                 title={`${day.count} kontribusi pada ${formatDate(day.date)}`}
-                className={cn("h-[11px] w-[11px] rounded-[2px] border border-border/50", levelClass(day.level))}
+                style={{ animationDelay: `${(wi * 7 + di) * 2}ms` }}
+                className={cn(
+                  "h-[11px] w-[11px] rounded-[2px] border border-border/50",
+                  "motion-safe:animate-scale-in motion-safe:opacity-0",
+                  "transition-transform duration-150 ease-out hover:scale-150 hover:border-foreground",
+                  levelClass(day.level)
+                )}
               />
             ))}
           </div>

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { ContributionHeatmap } from "./contribution-heatmap";
+import { CountUp } from "./count-up";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/portfolio/empty-state";
-import { formatDateTime } from "@/lib/utils";
+import { cn, formatDateTime } from "@/lib/utils";
 import { getServerEnv } from "@/config/env";
 import type { GithubCache, GithubConfig } from "@/types/github";
 
@@ -31,20 +32,30 @@ export function GithubActivitySection({ config, cache }: { config: GithubConfig;
   return (
     <div className="space-y-12">
       {cache.lastSyncedAt && (
-        <p className="index-label">
+        <p className="index-label motion-safe:animate-fade-in flex items-center gap-2">
+          {!hasAnyError && !isStale && (
+            <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-foreground motion-safe:animate-pulse-ring" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-foreground" />
+            </span>
+          )}
           Terakhir disinkronkan: {formatDateTime(cache.lastSyncedAt)}
           {(hasAnyError || isStale) && <span className="text-destructive"> · data mungkin tidak terbaru</span>}
         </p>
       )}
 
-      <section aria-labelledby="heatmap-heading">
+      <section
+        aria-labelledby="heatmap-heading"
+        className="motion-safe:animate-fade-in-up motion-safe:opacity-0"
+        style={{ animationDelay: "0ms" }}
+      >
         <h2 id="heatmap-heading" className="font-display text-xl font-medium">
           Contribution Activity
         </h2>
         {cache.contributions ? (
           <div className="mt-4">
             <p className="mb-3 text-sm text-muted-foreground">
-              {cache.contributions.totalContributions} kontribusi dalam 12 bulan terakhir
+              <CountUp value={cache.contributions.totalContributions} /> kontribusi dalam 12 bulan terakhir
             </p>
             <ContributionHeatmap calendar={cache.contributions} />
           </div>
@@ -62,7 +73,11 @@ export function GithubActivitySection({ config, cache }: { config: GithubConfig;
         )}
       </section>
 
-      <section aria-labelledby="repos-heading">
+      <section
+        aria-labelledby="repos-heading"
+        className="motion-safe:animate-fade-in-up motion-safe:opacity-0"
+        style={{ animationDelay: "100ms" }}
+      >
         <h2 id="repos-heading" className="font-display text-xl font-medium">
           Currently Developing
         </h2>
@@ -72,13 +87,18 @@ export function GithubActivitySection({ config, cache }: { config: GithubConfig;
           </div>
         ) : (
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            {cache.repos.map((repo) => (
+            {cache.repos.map((repo, i) => (
               <Link
                 key={`${repo.owner}/${repo.repo}`}
                 href={repo.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group block border border-border p-5 transition-colors hover:bg-accent"
+                style={{ animationDelay: `${150 + i * 60}ms` }}
+                className={cn(
+                  "group block border border-border p-5",
+                  "motion-safe:animate-fade-in-up motion-safe:opacity-0",
+                  "transition-all duration-200 ease-out hover:-translate-y-1 hover:border-foreground hover:bg-accent hover:shadow-[4px_4px_0_0_hsl(var(--foreground))]"
+                )}
               >
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-mono text-xs text-muted-foreground">
@@ -103,7 +123,11 @@ export function GithubActivitySection({ config, cache }: { config: GithubConfig;
         )}
       </section>
 
-      <section aria-labelledby="commits-heading">
+      <section
+        aria-labelledby="commits-heading"
+        className="motion-safe:animate-fade-in-up motion-safe:opacity-0"
+        style={{ animationDelay: "200ms" }}
+      >
         <h2 id="commits-heading" className="font-display text-xl font-medium">
           Latest Commits
         </h2>
@@ -113,8 +137,12 @@ export function GithubActivitySection({ config, cache }: { config: GithubConfig;
           </div>
         ) : (
           <ol className="mt-4 divide-y divide-border border border-border font-mono text-sm">
-            {cache.commits.map((commit) => (
-              <li key={commit.sha}>
+            {cache.commits.map((commit, i) => (
+              <li
+                key={commit.sha}
+                style={{ animationDelay: `${250 + i * 80}ms` }}
+                className="motion-safe:animate-fade-in-up motion-safe:opacity-0"
+              >
                 <Link
                   href={commit.url}
                   target="_blank"
