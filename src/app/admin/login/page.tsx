@@ -8,7 +8,35 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+/**
+ * `useSearchParams()` opts a page into client-side rendering during
+ * prerendering, and Next.js requires it to sit inside a `<Suspense>`
+ * boundary — otherwise `next build`'s static generation fails outright
+ * (see https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout).
+ * The actual form is split into its own component so the page itself can
+ * wrap just that piece in `<Suspense>` below, without needing the whole
+ * login layout to re-render after hydration.
+ */
 export default function AdminLoginPage() {
+  return (
+    <React.Suspense fallback={<LoginFallback />}>
+      <AdminLoginForm />
+    </React.Suspense>
+  );
+}
+
+function LoginFallback() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="w-full max-w-sm text-center">
+        <p className="index-label mb-2">ADMIN ACCESS</p>
+        <h1 className="font-display text-2xl font-semibold">Masuk ke Dashboard</h1>
+      </div>
+    </div>
+  );
+}
+
+function AdminLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = React.useState("");
