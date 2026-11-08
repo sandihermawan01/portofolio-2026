@@ -153,6 +153,60 @@ describe("projects — draft vs published visibility", () => {
   });
 });
 
+describe("github/config and github/cache", () => {
+  const validConfig = { username: "zsans", selectedRepos: [], widgetVisible: true };
+
+  it("allows anonymous read of config", async () => {
+    const unauthed = testEnv.unauthenticatedContext();
+    await assertSucceeds(getDoc(doc(unauthed.firestore(), "github/config")));
+  });
+
+  it("allows anonymous read of cache", async () => {
+    const unauthed = testEnv.unauthenticatedContext();
+    await assertSucceeds(getDoc(doc(unauthed.firestore(), "github/cache")));
+  });
+
+  it("denies anonymous write to config", async () => {
+    const unauthed = testEnv.unauthenticatedContext();
+    await assertFails(setDoc(doc(unauthed.firestore(), "github/config"), validConfig));
+  });
+
+  it("denies write from an authenticated non-admin user", async () => {
+    const user = testEnv.authenticatedContext("user-1", { admin: false });
+    await assertFails(setDoc(doc(user.firestore(), "github/config"), validConfig));
+  });
+
+  it("allows write to config from an admin user", async () => {
+    const admin = testEnv.authenticatedContext("admin-1", { admin: true });
+    await assertSucceeds(setDoc(doc(admin.firestore(), "github/config"), validConfig));
+  });
+
+  it("rejects a config write missing required fields, even from an admin", async () => {
+    const admin = testEnv.authenticatedContext("admin-1", { admin: true });
+    await assertFails(setDoc(doc(admin.firestore(), "github/config"), { username: "zsans" }));
+  });
+
+  it("rejects more than 12 selectedRepos, even from an admin", async () => {
+    const admin = testEnv.authenticatedContext("admin-1", { admin: true });
+    const tooMany = Array.from({ length: 13 }, (_, i) => ({
+      owner: "zsans",
+      repo: `repo-${i}`,
+      status: "active",
+      sortOrder: i,
+    }));
+    await assertFails(
+      setDoc(doc(admin.firestore(), "github/config"), { username: "zsans", selectedRepos: tooMany, widgetVisible: true })
+    );
+  });
+
+  it("denies cache writes from anyone, admin included — machine-written via Admin SDK only", async () => {
+    const admin = testEnv.authenticatedContext("admin-1", { admin: true });
+    await assertFails(
+      setDoc(doc(admin.firestore(), "github/cache"), { contributions: null, repos: [], commits: [], lastSyncErrors: [] })
+    );
+  });
+});
+
 describe("messages — never client-accessible", () => {
   it("denies anonymous read", async () => {
     await testEnv.withSecurityRulesDisabled(async (ctx) => {

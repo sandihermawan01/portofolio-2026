@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, User, Briefcase, FolderKanban, Settings } from "lucide-react";
+import { LayoutDashboard, User, Briefcase, FolderKanban, Github, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LogoutButton } from "./logout-button";
 
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: "/admin/about", label: "About", icon: User },
   { href: "/admin/experience", label: "Experience", icon: Briefcase },
   { href: "/admin/projects", label: "Projects", icon: FolderKanban },
+  { href: "/admin/github", label: "GitHub", icon: Github },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

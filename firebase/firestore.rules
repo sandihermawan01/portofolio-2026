@@ -69,6 +69,24 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // github/config (admin-managed settings), github/cache (machine-written
+    // GitHub Activity data). Both are publicly readable — the public
+    // /github page and the /project page's link to it need to read them
+    // with no signed-in user — but only `config` is ever client-writable,
+    // and only by an admin; `cache` is written exclusively by the Admin
+    // SDK from the sync job (src/lib/github/sync.ts) and the webhook/cron
+    // routes, never through a client SDK call, admin included — matching
+    // the doc comment on the `GithubCache` type in src/types/github.ts.
+    match /github/{docId} {
+      allow read: if docId in ['config', 'cache'];
+      allow write: if docId == 'config'
+        && isAdmin()
+        && request.resource.data.keys().hasAll(['username', 'selectedRepos', 'widgetVisible'])
+        && request.resource.data.selectedRepos is list
+        && request.resource.data.selectedRepos.size() <= 12
+        && request.resource.data.widgetVisible is bool;
+    }
+
     // Contact form submissions. Deliberately no client read/write in either
     // direction — written only by the Admin SDK from the server, read only
     // via the Firebase Console/Admin SDK tooling if the owner wants them.

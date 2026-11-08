@@ -103,6 +103,49 @@ Free tier Cloudinary memberi 25 "credit" bulanan (kira-kira setara 25GB
 storage atau bandwidth bulanan, tergantung kombinasi pemakaian) — jauh lebih
 dari cukup untuk foto profil + gambar project sebuah portofolio.
 
+### 3.6 GitHub Activity (opsional)
+
+Section publik `/github` (link muncul di halaman Project) yang menampilkan
+contribution heatmap, daftar repository yang sedang dikerjakan, dan 3 commit
+terbaru — lihat `docs/ARCHITECTURE.md` untuk desain lengkapnya. Fitur ini
+**sepenuhnya opsional**: tanpa `GITHUB_TOKEN`, halaman
+`/github` tetap ada tapi menunjukkan empty state di setiap bagian, dan
+`widgetVisible` di Admin Dashboard tetap bisa dimatikan kapan saja.
+
+1. **Buat Personal Access Token** di GitHub → Settings → Developer settings
+   → Personal access tokens:
+   - **Fine-grained token** (disarankan): scope **Read-only** untuk
+     "Contents" dan "Metadata" pada repository publik Anda saja.
+   - Atau **classic token** dengan scope `public_repo` dan `read:user` saja
+     — jangan beri scope lebih dari itu (prinsip least privilege).
+2. Tempel token ke `GITHUB_TOKEN` di `.env.local`/environment variable
+   server (Vercel). **Jangan pernah** prefix dengan `NEXT_PUBLIC_`.
+3. **(Opsional) Webhook** untuk refresh cache segera setelah `git push`,
+   alih-alih menunggu jadwal cron berikutnya:
+   - Repo yang ingin dipantau → Settings → Webhooks → Add webhook.
+   - Payload URL: `https://domain-anda.com/api/github/webhook`
+   - Content type: `application/json`
+   - Secret: nilai acak (`openssl rand -hex 32`), isi juga ke
+     `GITHUB_WEBHOOK_SECRET` di server. Signature-nya diverifikasi
+     konstanta-waktu (`timingSafeEqual`) di `src/lib/github/webhook.ts`.
+   - Event: cukup "Just the push event".
+4. **Sinkronisasi terjadwal** — `GITHUB_SYNC_CRON_SECRET` melindungi
+   `GET/POST /api/github/sync`. **Penting:** nama variabel ini **bukan**
+   `CRON_SECRET`, jadi Vercel Cron **tidak** otomatis mengirim header
+   `Authorization`-nya (lihat komentar di
+   `src/app/api/github/sync/route.ts`). Pilih salah satu:
+   - Jadwalkan panggilan ke endpoint tersebut dari scheduler eksternal yang
+     bisa menyetel header kustom (mis. GitHub Actions dengan `schedule:`,
+     atau cron-job.org) dengan header
+     `Authorization: Bearer <nilai GITHUB_SYNC_CRON_SECRET>`; **atau**
+   - Ganti nama variabelnya jadi `CRON_SECRET` (di `src/config/env.ts` dan
+     `src/app/api/github/sync/route.ts`) supaya `vercel.json`'s `crons`
+     bisa memanggilnya otomatis setiap 6 jam.
+5. Tambahkan username GitHub dan pilih repository (maks. 12) lewat
+   **Admin Dashboard → GitHub** (`/admin/github`) — di sana juga ada tombol
+   **Sync Now** untuk memicu sinkronisasi manual kapan saja, dan toggle
+   **Tampilkan halaman GitHub Activity ke publik**.
+
 ## 4. Membuat admin pertama
 
 Tidak ada pendaftaran publik — ini disengaja. Langkahnya:
@@ -132,6 +175,8 @@ Ringkasan kategorinya:
 | Admin access | `ADMIN_UID_ALLOWLIST` | daftar UID admin, dipakai bersama custom claim |
 | Session | `SESSION_COOKIE_SECRET`, `SESSION_EXPIRES_IN_SECONDS` | |
 | Contact rate limit | `CONTACT_RATE_LIMIT_MAX`, `CONTACT_RATE_LIMIT_WINDOW_SECONDS` | lihat keterbatasan di bagian 8 |
+| Cloudinary | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | `CLOUDINARY_API_SECRET` **server-only** |
+| GitHub Activity (opsional) | `GITHUB_TOKEN`, `GITHUB_WEBHOOK_SECRET`, `GITHUB_SYNC_CRON_SECRET`, `GITHUB_SYNC_CACHE_TTL_MINUTES` | semuanya **server-only**; lihat bagian 3.6 |
 | Site | `NEXT_PUBLIC_SITE_URL` | dipakai untuk metadata, sitemap, dan pengecekan origin (CSRF) |
 
 Environment divalidasi dengan Zod saat aplikasi start (`src/config/env.ts`)
@@ -181,6 +226,16 @@ npm run build
     Cloudinary) — validasi upload gambar (tipe MIME, ukuran, magic bytes)
     sekarang murni di kode server (`src/lib/media/cloudinary-upload.ts`),
     jadi dicakup lewat test unit biasa, bukan test rules berbasis emulator.
+  - Validasi Zod untuk `github/config` (`githubUsernameSchema`,
+    `repoSelectionSchema`, `githubConfigSchema` — termasuk batas maks. 12
+    repository dan username-kosong-dianggap-belum-diset).
+  - Verifikasi signature webhook GitHub (`verifyGithubWebhookSignature`) —
+    payload valid diterima, payload/secret salah atau header hilang/rusak
+    ditolak (`tests/unit/github-webhook.test.ts`).
+  - Firestore Rules untuk `github/config` (baca publik, tulis hanya admin,
+    skema minimal divalidasi di rules, maks. 12 `selectedRepos`) dan
+    `github/cache` (baca publik, **tulis ditolak untuk semua orang termasuk
+    admin** — hanya Admin SDK dari job sync yang boleh menulis).
 - **Manual/E2E testing (login→CRUD→publish→lihat di publik, responsive
   check di mobile/tablet/desktop) belum dilakukan sama sekali** — sesuai
   permintaan, ini akan dijalankan oleh pemilik proyek sendiri.
