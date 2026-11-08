@@ -1,10 +1,10 @@
-# Portfolio — Monochrome Retro
+# My New Portfolio 2026
 
 Website portofolio personal full-stack: area publik (About, Experience,
 Project, Contact) + dashboard admin privat untuk mengelola konten, dibangun
 dengan Next.js (App Router, TypeScript), Tailwind CSS, Firebase
 (Authentication + Firestore — **keduanya gratis di plan Spark**), dan
-Cloudinary untuk upload gambar (juga gratis, tanpa kartu kredit).
+Cloudinary untuk upload gambar (juga gratis).
 
 Dokumen terkait:
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — route map, model auth,
