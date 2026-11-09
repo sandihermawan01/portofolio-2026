@@ -3,7 +3,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { SectionHeading } from "@/components/portfolio/section-heading";
 import { EmptyState } from "@/components/portfolio/empty-state";
+import { ParallaxBanner } from "@/components/portfolio/parallax-banner";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { getProfile } from "@/features/about/queries";
 
 export const metadata: Metadata = {
@@ -24,15 +26,13 @@ export default async function AboutPage() {
   }
 
   return (
-    <div className="container-editorial py-16">
-      <SectionHeading index="01 / ABOUT" title="About" />
+    <div className="pb-16">
+      <ParallaxBanner index="01 / ABOUT" title={profile.name} subtitle={profile.role} imageUrl={profile.avatarUrl} />
 
-      <div className="grid gap-10 sm:grid-cols-[2fr_1fr]">
+      <div className="container-editorial grid gap-10 sm:grid-cols-[2fr_1fr]">
         <div>
-          <h2 className="font-display text-2xl font-medium">{profile.name}</h2>
-          <p className="mt-1 text-muted-foreground">{profile.role}</p>
-          {profile.location && <p className="mt-1 font-mono text-xs text-muted-foreground">{profile.location}</p>}
-          <p className="mt-6 whitespace-pre-line leading-relaxed">{profile.bio}</p>
+          {profile.location && <p className="font-mono text-xs text-muted-foreground">{profile.location}</p>}
+          <p className={cn("whitespace-pre-line leading-relaxed", profile.location ? "mt-4" : "")}>{profile.bio}</p>
 
           {profile.skills.length > 0 && (
             <div className="mt-10">
