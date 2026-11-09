@@ -6,6 +6,7 @@ import { adminDb } from "@/lib/firebase/admin";
 import { contactFormSchema } from "@/lib/validations/contact";
 import { checkRateLimit, getClientIdentifier } from "@/lib/security/rate-limit";
 import { getServerEnv } from "@/config/env";
+import { sendContactNotification } from "@/lib/email/contact-notification";
 
 export interface SubmitContactResult {
   ok: boolean;
@@ -18,8 +19,13 @@ export interface SubmitContactResult {
  *
  * Storage decision (documented per the master prompt's "don't store unless
  * explicitly designed and secured" rule): messages ARE stored, in the
- * `messages` collection, so the owner doesn't lose them if an email
- * provider isn't configured yet. That collection:
+ * `messages` collection, as the durable source of truth — the optional
+ * email notification below (`sendContactNotification`) is a convenience
+ * on top of that storage, never a replacement for it. If
+ * `RESEND_API_KEY`/`CONTACT_NOTIFICATION_EMAIL` aren't configured, or the
+ * email send fails for any reason, the message is still safely in
+ * Firestore; nothing is ever lost because an email didn't go out. That
+ * collection:
  *  - has NO Firestore Rules path allowing client read or write at all (see
  *    firebase/firestore.rules) — the only writer is this server function
  *    via the Admin SDK, and there is no public or admin-UI reader built in
@@ -57,6 +63,20 @@ export async function submitContactForm(input: unknown, headers: Headers): Promi
     ipHash,
     createdAt: FieldValue.serverTimestamp(),
   });
+
+  // Best-effort notification — the message above is already durably
+  // saved, so a failure here is logged (never to the visitor) and never
+  // turns this submission into an error response. See
+  // src/lib/email/contact-notification.ts for why email is a convenience
+  // layered on top of storage, not a replacement for it.
+  const emailResult = await sendContactNotification({
+    name: parsed.data.name,
+    email: parsed.data.email,
+    message: parsed.data.message,
+  });
+  if (!emailResult.ok && emailResult.error !== "not_configured") {
+    console.error("[contact] email notification failed:", emailResult.error);
+  }
 
   return { ok: true };
 }

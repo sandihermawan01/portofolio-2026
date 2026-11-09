@@ -1,10 +1,10 @@
-# My New Portfolio 2026
+# Portfolio — Monochrome Retro
 
 Website portofolio personal full-stack: area publik (About, Experience,
 Project, Contact) + dashboard admin privat untuk mengelola konten, dibangun
 dengan Next.js (App Router, TypeScript), Tailwind CSS, Firebase
 (Authentication + Firestore — **keduanya gratis di plan Spark**), dan
-Cloudinary untuk upload gambar (juga gratis).
+Cloudinary untuk upload gambar (juga gratis, tanpa kartu kredit).
 
 Dokumen terkait:
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — route map, model auth,
@@ -145,6 +145,27 @@ terbaru — lihat `docs/ARCHITECTURE.md` untuk desain lengkapnya. Fitur ini
    **Admin Dashboard → GitHub** (`/admin/github`) — di sana juga ada tombol
    **Sync Now** untuk memicu sinkronisasi manual kapan saja, dan toggle
    **Tampilkan halaman GitHub Activity ke publik**.
+
+### 3.7 Email notifikasi contact form (opsional)
+
+Form contact selalu menyimpan pesan ke Firestore `messages` terlepas dari
+bagian ini — ini cuma menambahkan email notifikasi supaya kamu tidak perlu
+cek Firebase Console manual tiap ada pesan masuk.
+
+1. Daftar gratis di [resend.com](https://resend.com) (3.000 email/bulan
+   gratis, tidak perlu kartu kredit).
+2. Buat API Key di Resend Dashboard → API Keys → Create API Key. Isi ke
+   `RESEND_API_KEY`. **Server-only**, jangan pernah prefix `NEXT_PUBLIC_`.
+3. Isi `CONTACT_NOTIFICATION_EMAIL` dengan email tujuan (email kamu).
+4. Untuk `CONTACT_EMAIL_FROM`: boleh langsung pakai default
+   `onboarding@resend.dev` (sandbox Resend, tanpa setup tambahan) untuk
+   mulai cepat. Kalau mau pakai domain sendiri (mis.
+   `contact@domainmu.com`), verifikasi domainnya dulu di Resend Dashboard
+   → Domains sebelum dipakai di sini — mengisi alamat dari domain yang
+   belum diverifikasi akan membuat pengiriman gagal (pesan tetap aman
+   tersimpan di Firestore, cuma emailnya yang tidak terkirim).
+5. Tanpa `RESEND_API_KEY` atau `CONTACT_NOTIFICATION_EMAIL`, fitur ini
+   otomatis nonaktif (tidak error) — pesan tetap tersimpan seperti biasa.
 
 ## 4. Membuat admin pertama
 

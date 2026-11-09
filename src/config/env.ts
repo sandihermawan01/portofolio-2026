@@ -67,6 +67,15 @@ const serverSchema = z.object({
   GITHUB_WEBHOOK_SECRET: z.string().optional(),
   GITHUB_SYNC_CRON_SECRET: z.string().optional(),
   GITHUB_SYNC_CACHE_TTL_MINUTES: z.coerce.number().int().positive().default(360),
+  // Contact form email notification — entirely OPTIONAL, same degrade-
+  // gracefully rule as GitHub above: without these, messages are still
+  // saved to Firestore (see features/contact/actions.ts), just without an
+  // email going out. RESEND_API_KEY is server-only, never NEXT_PUBLIC_.
+  RESEND_API_KEY: z.string().optional(),
+  CONTACT_NOTIFICATION_EMAIL: z.string().email().optional(),
+  // Must be an address on a domain verified in the Resend dashboard, or
+  // Resend's own sandbox sender (onboarding@resend.dev) for testing.
+  CONTACT_EMAIL_FROM: z.string().email().default("onboarding@resend.dev"),
 });
 
 let cachedServerEnv: z.infer<typeof serverSchema> | null = null;
@@ -99,6 +108,9 @@ export function getServerEnv() {
     GITHUB_WEBHOOK_SECRET: process.env.GITHUB_WEBHOOK_SECRET,
     GITHUB_SYNC_CRON_SECRET: process.env.GITHUB_SYNC_CRON_SECRET,
     GITHUB_SYNC_CACHE_TTL_MINUTES: process.env.GITHUB_SYNC_CACHE_TTL_MINUTES,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    CONTACT_NOTIFICATION_EMAIL: process.env.CONTACT_NOTIFICATION_EMAIL,
+    CONTACT_EMAIL_FROM: process.env.CONTACT_EMAIL_FROM,
   });
 
   if (!parsed.success) {
@@ -126,4 +138,14 @@ export function getAdminAllowlist(): string[] {
  * state instead of a confusing fetch failure. */
 export function isGithubIntegrationConfigured(): boolean {
   return Boolean(getServerEnv().GITHUB_TOKEN);
+}
+
+/** Whether a contact form submission should also trigger an email
+ * notification. Both a Resend API key AND a recipient address are
+ * required — one without the other is almost certainly a half-finished
+ * setup, so it's treated the same as "not configured" rather than
+ * silently emailing no one or crashing on a missing recipient. */
+export function isContactEmailConfigured(): boolean {
+  const env = getServerEnv();
+  return Boolean(env.RESEND_API_KEY && env.CONTACT_NOTIFICATION_EMAIL);
 }
