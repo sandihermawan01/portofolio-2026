@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
-import "./globals.css"
+import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { RouteProgressBar } from "@/components/layout/route-progress-bar";
 import { clientEnv } from "@/config/env";
 
 const display = Space_Grotesk({
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="id" suppressHydrationWarning>
       <body className={`${display.variable} ${sans.variable} ${mono.variable} font-sans`}>
         <div className="grain-overlay" aria-hidden="true" />
+        <RouteProgressBar />
         {children}
         <Toaster />
       </body>

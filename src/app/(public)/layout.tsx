@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
+import { PageTransition } from "@/components/layout/page-transition";
 import { getProfile, getContactInfo } from "@/features/about/queries";
 import { getGithubConfig } from "@/features/github/queries";
 
@@ -11,7 +12,9 @@ export default async function PublicLayout({ children }: { children: React.React
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar ownerName={ownerName} showGithubLink={githubConfig.widgetVisible} />
-      <main className="flex-1">{children}</main>
+      <main className="flex-1">
+        <PageTransition>{children}</PageTransition>
+      </main>
       <Footer ownerName={ownerName} socialLinks={socialLinks} />
     </div>
   );

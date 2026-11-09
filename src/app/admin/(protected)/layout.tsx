@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getVerifiedAdminSession } from "@/lib/firebase/auth";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { AdminMobileNav } from "@/components/admin/admin-mobile-nav";
+import { PageTransition } from "@/components/layout/page-transition";
 
 /**
  * Real authorization boundary for every /admin/* page except /admin/login.
@@ -23,7 +24,9 @@ export default async function ProtectedAdminLayout({ children }: { children: Rea
       <AdminSidebar email={session.email} />
       <div className="flex-1">
         <AdminMobileNav email={session.email} />
-        <main className="container-editorial py-8">{children}</main>
+        <main className="container-editorial py-8">
+          <PageTransition>{children}</PageTransition>
+        </main>
       </div>
     </div>
   );
