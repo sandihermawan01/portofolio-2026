@@ -4,21 +4,31 @@ import * as React from "react";
 import { useRouter, usePathname } from "next/navigation";
 
 /**
- * Whether `document.startViewTransition` is typed at all depends on the
- * TypeScript/DOM-lib version — some have it (as a required method, since
- * it's a real browser API now), some don't. Rather than re-declaring it
- * globally (which breaks the build the moment the installed TS version
- * *does* already have it — "All declarations ... must have identical
- * modifiers" — exactly what happened here), this casts `document` to a
- * local type on each use instead, which works the same way regardless of
- * what lib.dom.d.ts does or doesn't already declare.
+ * Whether (and how) `document.startViewTransition` is typed depends on the
+ * installed TypeScript/DOM-lib version, and two different approaches have
+ * now each broken the build once:
+ * - re-declaring it globally conflicted with a version that already
+ *   declares it ("All declarations ... must have identical modifiers").
+ * - `interface ... extends Document` conflicted too, because TS checks
+ *   that an `extends`'d interface's members stay *structurally compatible*
+ *   with Document's own (already-declared, non-optional, differently-typed)
+ *   version of the same method — "incorrectly extends interface 'Document'".
+ *
+ * Going through `unknown` first sidesteps both: it's not a global
+ * declaration (nothing to conflict with) and not an `extends` relationship
+ * (nothing for TS to structurally check against Document's own typing), so
+ * this works the same regardless of what lib.dom.d.ts does or doesn't
+ * already declare.
  */
-interface ViewTransitionDocument extends Document {
-  startViewTransition?: (callback: () => void | Promise<void>) => {
-    ready: Promise<void>;
-    finished: Promise<void>;
-    updateCallbackDone: Promise<void>;
-  };
+type StartViewTransitionFn = (callback: () => void | Promise<void>) => {
+  ready: Promise<void>;
+  finished: Promise<void>;
+  updateCallbackDone: Promise<void>;
+};
+
+function getStartViewTransition(doc: Document): StartViewTransitionFn | undefined {
+  const fn = (doc as unknown as { startViewTransition?: unknown }).startViewTransition;
+  return typeof fn === "function" ? (fn.bind(doc) as StartViewTransitionFn) : undefined;
 }
 
 /**
@@ -90,13 +100,13 @@ export function ViewTransitionsProvider({ children }: { children: React.ReactNod
       if (anchor.target && anchor.target !== "_self") return;
       if (href === pathname) return; // already there — nothing to transition
 
-      const vtDocument = document as ViewTransitionDocument;
+      const startViewTransition = getStartViewTransition(document);
       const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-      if (prefersReducedMotion || typeof vtDocument.startViewTransition !== "function") return;
+      if (prefersReducedMotion || !startViewTransition) return;
 
       event.preventDefault();
       event.stopPropagation();
-      vtDocument.startViewTransition(() => {
+      startViewTransition(() => {
         return new Promise<void>((resolve) => {
           resolveNavigationRef.current = resolve;
           router.push(href);
