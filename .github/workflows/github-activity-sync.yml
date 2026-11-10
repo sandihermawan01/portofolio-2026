@@ -22,8 +22,12 @@ name: GitHub Activity Sync
 #      value back to prove it's allowed to trigger a sync.
 #   2. Add a matching GitHub Actions secret in THIS repo: Settings →
 #      Secrets and variables → Actions → "New repository secret" →
-#      name it GITHUB_SYNC_CRON_SECRET, value = the exact same secret
-#      used in Vercel.
+#      name it SYNC_CRON_SECRET (NOT "GITHUB_SYNC_CRON_SECRET" — GitHub
+#      reserves the "GITHUB_" prefix for its own built-in secrets and
+#      refuses to let you create one starting with it; this is just the
+#      name of the GitHub Actions secret, it doesn't need to match the
+#      Vercel env var's name, only its VALUE), value = the exact same
+#      secret used for GITHUB_SYNC_CRON_SECRET in Vercel.
 #   3. Commit this file to the default branch (main) — GitHub only runs
 #      `schedule:`-triggered workflows from the default branch, not from
 #      feature branches or PRs.
@@ -48,10 +52,10 @@ jobs:
     steps:
       - name: Trigger GitHub Activity sync
         env:
-          SYNC_SECRET: ${{ secrets.GITHUB_SYNC_CRON_SECRET }}
+          SYNC_SECRET: ${{ secrets.SYNC_CRON_SECRET }}
         run: |
           if [ -z "$SYNC_SECRET" ]; then
-            echo "::error::GITHUB_SYNC_CRON_SECRET repository secret is not set. See the setup steps in this workflow file's comments."
+            echo "::error::SYNC_CRON_SECRET repository secret is not set. See the setup steps in this workflow file's comments."
             exit 1
           fi
 
