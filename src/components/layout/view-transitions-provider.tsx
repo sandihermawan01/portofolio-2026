@@ -4,19 +4,21 @@ import * as React from "react";
 import { useRouter, usePathname } from "next/navigation";
 
 /**
- * `document.startViewTransition` isn't in every TS DOM lib yet (depends on
- * the TypeScript version pinned in this project) — declared here as an
- * optional method so `typeof document.startViewTransition === "function"`
- * feature-detection stays type-safe without a blanket `@ts-expect-error`.
+ * Whether `document.startViewTransition` is typed at all depends on the
+ * TypeScript/DOM-lib version — some have it (as a required method, since
+ * it's a real browser API now), some don't. Rather than re-declaring it
+ * globally (which breaks the build the moment the installed TS version
+ * *does* already have it — "All declarations ... must have identical
+ * modifiers" — exactly what happened here), this casts `document` to a
+ * local type on each use instead, which works the same way regardless of
+ * what lib.dom.d.ts does or doesn't already declare.
  */
-declare global {
-  interface Document {
-    startViewTransition?: (callback: () => void | Promise<void>) => {
-      ready: Promise<void>;
-      finished: Promise<void>;
-      updateCallbackDone: Promise<void>;
-    };
-  }
+interface ViewTransitionDocument extends Document {
+  startViewTransition?: (callback: () => void | Promise<void>) => {
+    ready: Promise<void>;
+    finished: Promise<void>;
+    updateCallbackDone: Promise<void>;
+  };
 }
 
 /**
@@ -88,12 +90,13 @@ export function ViewTransitionsProvider({ children }: { children: React.ReactNod
       if (anchor.target && anchor.target !== "_self") return;
       if (href === pathname) return; // already there — nothing to transition
 
+      const vtDocument = document as ViewTransitionDocument;
       const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-      if (prefersReducedMotion || typeof document.startViewTransition !== "function") return;
+      if (prefersReducedMotion || typeof vtDocument.startViewTransition !== "function") return;
 
       event.preventDefault();
       event.stopPropagation();
-      document.startViewTransition(() => {
+      vtDocument.startViewTransition(() => {
         return new Promise<void>((resolve) => {
           resolveNavigationRef.current = resolve;
           router.push(href);

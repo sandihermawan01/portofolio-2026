@@ -50,7 +50,12 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   const [skipFallbackFade, setSkipFallbackFade] = React.useState(false);
 
   React.useEffect(() => {
-    setSkipFallbackFade(typeof document.startViewTransition === "function");
+    // Cast rather than relying on `document.startViewTransition` typing
+    // directly — whether it's declared at all depends on the installed
+    // TypeScript/DOM-lib version, and this way works the same regardless
+    // (see the matching comment in ViewTransitionsProvider).
+    const startViewTransition = (document as { startViewTransition?: unknown }).startViewTransition;
+    setSkipFallbackFade(typeof startViewTransition === "function");
   }, []);
 
   return (
