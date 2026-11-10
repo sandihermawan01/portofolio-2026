@@ -26,7 +26,7 @@ export default async function ProjectListPage() {
             <Link
               key={project.id}
               href={`/project/${project.slug}`}
-              className="group flex flex-col justify-between gap-6 bg-background p-6 transition-colors hover:bg-accent"
+              className="group flex flex-col justify-between gap-6 bg-background p-8 transition-colors hover:bg-accent"
             >
               <div>
                 <div className="flex items-center justify-between">

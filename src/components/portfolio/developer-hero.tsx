@@ -51,9 +51,22 @@ function GraphCanvas({ skills }: { skills: string[] }) {
     const nodeColor = foreground ? `hsl(${foreground})` : "#888";
 
     const labels = skills.slice(0, 7);
-    const FILLER_COUNT = 26;
     const MAX_EDGE_DIST = 150;
     const MOUSE_RADIUS = 130;
+
+    /**
+     * Node count scales with the hero's actual on-screen area instead of
+     * being a fixed number — a fixed count looked fine on a narrow mobile
+     * hero but read as sparse/empty on a wide desktop one (more so now
+     * that the page's max width grew). One node per ~9,000px² keeps
+     * mobile close to how it looked before while desktop gets noticeably
+     * busier, clamped so it never goes too sparse or too crowded.
+     */
+    function computeFillerCount(): number {
+      const { width, height } = sizeRef.current;
+      const density = (width * height) / 9000;
+      return Math.max(18, Math.min(70, Math.round(density)));
+    }
 
     function resize() {
       if (!container || !canvas) return;
@@ -80,7 +93,8 @@ function GraphCanvas({ skills }: { skills: string[] }) {
     }
 
     function initNodes() {
-      nodesRef.current = [...labels.map((l) => makeNode(l)), ...Array.from({ length: FILLER_COUNT }, () => makeNode(null))];
+      const fillerCount = computeFillerCount();
+      nodesRef.current = [...labels.map((l) => makeNode(l)), ...Array.from({ length: fillerCount }, () => makeNode(null))];
     }
 
     resize();

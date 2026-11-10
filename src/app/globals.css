@@ -117,6 +117,15 @@
     }
   }
 
+  /* Scales every rem-based size site-wide (Tailwind's text-*, padding,
+     gap, etc. are all defined in rem) — a single lever for "everything
+     reads a bit bigger now that pages are wider", rather than bumping
+     dozens of individual text-size/padding classes one by one. The
+     browser default is 16px; this nudges it up ~12.5%. */
+  html {
+    font-size: 18px;
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
@@ -140,7 +149,7 @@
   }
 
   .container-editorial {
-    @apply mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8;
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-10 xl:px-16;
   }
 
   /* Very subtle grain overlay; purely decorative, non-interactive. */

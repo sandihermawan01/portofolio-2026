@@ -95,7 +95,7 @@ export function GithubActivitySection({ config, cache }: { config: GithubConfig;
                 rel="noopener noreferrer"
                 style={{ animationDelay: `${150 + i * 60}ms` }}
                 className={cn(
-                  "group block border border-border p-5",
+                  "group block border border-border p-7",
                   "motion-safe:animate-fade-in-up motion-safe:opacity-0",
                   "transition-all duration-200 ease-out hover:-translate-y-1 hover:border-foreground hover:bg-accent hover:shadow-[4px_4px_0_0_hsl(var(--foreground))]"
                 )}

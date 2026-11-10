@@ -88,7 +88,7 @@ export default async function HomePage() {
 
             <Link
               href="/experience"
-              className="group block border border-border p-5 transition-colors hover:bg-accent"
+              className="group block border border-border p-7 transition-colors hover:bg-accent"
             >
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <h3 className="font-display text-lg font-medium group-hover:underline">{latestExperience.title}</h3>
@@ -125,7 +125,7 @@ export default async function HomePage() {
               href={topRepo.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="group block border border-border p-5 transition-colors hover:bg-accent"
+              className="group block border border-border p-7 transition-colors hover:bg-accent"
             >
               <div className="flex items-center justify-between gap-2">
                 <p className="font-mono text-xs text-muted-foreground">
@@ -162,7 +162,7 @@ export default async function HomePage() {
                 <Link
                   key={project.id}
                   href={`/project/${project.slug}`}
-                  className="group block border border-border p-5 transition-colors hover:bg-accent"
+                  className="group block border border-border p-7 transition-colors hover:bg-accent"
                 >
                   <p className="font-mono text-xs text-muted-foreground">{String(i + 1).padStart(2, "0")}</p>
                   <h3 className="mt-2 font-display text-lg font-medium group-hover:underline">{project.title}</h3>
