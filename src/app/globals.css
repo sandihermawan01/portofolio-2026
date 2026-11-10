@@ -165,3 +165,103 @@
     mix-blend-mode: overlay;
   }
 }
+
+/* ==========================================================================
+   Retro "pixel dissolve" page transition, via the native View Transitions
+   API (document.startViewTransition — see ViewTransitionsProvider, which
+   feature-detects it and falls back to an ordinary instant navigation
+   where it's unsupported, e.g. Firefox at the time of writing). No new
+   dependency: this is a browser-native capture of the old/new page as two
+   rasterized layers, animated with plain CSS.
+
+   This is a genuine "breaking apart into pixel grains" effect, not a
+   zoom/blur standing in for one: `mask-image` is a repeating grid of small
+   dots (the "grains"), and `--vt-grain` — a registered custom property
+   (via @property, which is what makes an otherwise non-animatable value
+   like a gradient/mask-size interpolate smoothly frame to frame) — is the
+   size of that grid. Animating it from ~0 (dots far smaller than a pixel,
+   so the mask is effectively invisible and the page reads completely
+   normal) up to ~26px (big, clearly visible dots with real gaps between
+   them) while the layer also fades out is what makes the page visibly
+   crumble into growing pixel grains as it disappears, rather than just
+   shrinking or blurring. `steps(10, end)` on top of that gives it a
+   chunky, discrete, 8-bit cadence instead of a smooth modern cross-fade.
+
+   These pseudo-elements aren't regular DOM nodes, so they're written as
+   plain top-level rules (not inside @layer) the same way the dark-mode
+   media query above is.
+   ========================================================================== */
+@property --vt-grain {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0.5px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    image-rendering: pixelated;
+    animation-duration: 650ms;
+    animation-timing-function: steps(10, end);
+    animation-fill-mode: forwards;
+    /* A grid of round dots whose size/spacing is driven by --vt-grain —
+       black = visible part of the page, transparent = "missing" grain. */
+    mask-repeat: repeat;
+    mask-size: var(--vt-grain) var(--vt-grain);
+    mask-image: radial-gradient(circle at center, black calc(var(--vt-grain) * 0.42), transparent 0);
+  }
+
+  ::view-transition-old(root) {
+    animation-name: pixel-grain-out;
+  }
+
+  ::view-transition-new(root) {
+    animation-name: pixel-grain-in;
+  }
+}
+
+@keyframes pixel-grain-out {
+  0% {
+    --vt-grain: 0.5px;
+    opacity: 1;
+    filter: brightness(1);
+  }
+  60% {
+    opacity: 1;
+    filter: brightness(1.3);
+  }
+  100% {
+    --vt-grain: 26px;
+    opacity: 0;
+    filter: brightness(1.6);
+  }
+}
+
+@keyframes pixel-grain-in {
+  0% {
+    --vt-grain: 26px;
+    opacity: 0;
+    filter: brightness(1.6);
+  }
+  40% {
+    opacity: 1;
+    filter: brightness(1.3);
+  }
+  100% {
+    --vt-grain: 0.5px;
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+/* Belt-and-suspenders: the OS-level reduced-motion preference also hard-
+   disables any view-transition animation outright (not just this one),
+   on top of the `@media (prefers-reduced-motion: no-preference)` guard
+   above and ViewTransitionsProvider's own JS-side check. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { usePathname } from "next/navigation";
 
 /**
@@ -22,12 +23,38 @@ import { usePathname } from "next/navigation";
  * persistent chrome around it — navbar/footer, admin sidebar) so those
  * don't flicker/re-animate on every navigation, only the content that
  * actually changed.
+ *
+ * On the public site, this is the *fallback* enter animation — browsers
+ * that support the View Transitions API get the retro "pixel dissolve"
+ * effect instead (see `ViewTransitionsProvider` + the `::view-transition-*`
+ * rules in globals.css), which already handles both the exit and the
+ * enter, so this plain fade is skipped there to avoid the two effects
+ * stacking on top of each other. Where View Transitions aren't supported
+ * (or the visitor has `prefers-reduced-motion: reduce`, in which case
+ * `ViewTransitionsProvider` never engages it), this fade is what the
+ * visitor actually sees.
  */
 export function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
+  // Whether `document.startViewTransition` exists depends on the browser,
+  // which the server has no way to know — so the server (and the very
+  // first client render, before React has hydrated) always renders the
+  // fallback fade's className, exactly like it did before this feature
+  // existed. Only *after* mount do we check the real browser capability
+  // and flip it off if the pixel-dissolve effect is going to run instead.
+  // Computing this directly during render (e.g. `typeof document !==
+  // "undefined"`) would make the server and client render different
+  // classNames on the very first paint — a hydration mismatch — which is
+  // exactly what doing it this way avoids.
+  const [skipFallbackFade, setSkipFallbackFade] = React.useState(false);
+
+  React.useEffect(() => {
+    setSkipFallbackFade(typeof document.startViewTransition === "function");
+  }, []);
+
   return (
-    <div key={pathname} className="motion-safe:animate-fade-in-up">
+    <div key={pathname} className={skipFallbackFade ? undefined : "motion-safe:animate-fade-in-up"}>
       {children}
     </div>
   );
