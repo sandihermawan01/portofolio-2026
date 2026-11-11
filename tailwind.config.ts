@@ -77,6 +77,22 @@ const config: Config = {
           "0%": { transform: "scale(0.7)", opacity: "0.8" },
           "80%, 100%": { transform: "scale(1.8)", opacity: "0" },
         },
+        "pixel-tile-in": {
+          "0%": { transform: "scale(0)", opacity: "0" },
+          "60%": { transform: "scale(1.15)", opacity: "1" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        "pixel-tile-out": {
+          "0%": { transform: "scale(1)", opacity: "1" },
+          "40%": { transform: "scale(1.15)", opacity: "1" },
+          "100%": { transform: "scale(0)", opacity: "0" },
+        },
+        "theme-flip": {
+          "0%": { transform: "scaleX(1) rotate(0deg)" },
+          "35%": { transform: "scaleX(0.1) rotate(80deg)" },
+          "65%": { transform: "scaleX(0.1) rotate(100deg)" },
+          "100%": { transform: "scaleX(1) rotate(360deg)" },
+        },
       },
       animation: {
         "fade-in": "fade-in 180ms ease-out",
@@ -84,6 +100,9 @@ const config: Config = {
         "fade-in-up": "fade-in-up 500ms ease-out both",
         "scale-in": "scale-in 400ms cubic-bezier(0.16,1,0.3,1) both",
         "pulse-ring": "pulse-ring 1.8s cubic-bezier(0.2,0.6,0.4,1) infinite",
+        "pixel-tile-in": "pixel-tile-in 200ms ease-out both",
+        "pixel-tile-out": "pixel-tile-out 200ms ease-in both",
+        "theme-flip": "theme-flip 420ms steps(7, end) both",
       },
     },
   },

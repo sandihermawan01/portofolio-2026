@@ -7,6 +7,7 @@ import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger, SheetContent, SheetTitle, SheetClose } from "@/components/ui/sheet";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 const BASE_NAV_ITEMS = [
   { href: "/about", label: "About" },
@@ -58,35 +59,39 @@ export function Navbar({ ownerName, showGithubLink = false }: { ownerName: strin
           })}
         </nav>
 
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="md:hidden" aria-label="Buka menu navigasi">
-              <Menu />
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetTitle>Menu</SheetTitle>
-            <nav aria-label="Navigasi mobile" className="mt-8 flex flex-col gap-1">
-              {NAV_ITEMS.map((item) => {
-                const active = pathname === item.href || pathname?.startsWith(item.href + "/");
-                return (
-                  <SheetClose asChild key={item.href}>
-                    <Link
-                      href={item.href}
-                      aria-current={active ? "page" : undefined}
-                      className={cn(
-                        "rounded-sm px-3 py-3 text-base font-medium",
-                        active ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent"
-                      )}
-                    >
-                      {item.label}
-                    </Link>
-                  </SheetClose>
-                );
-              })}
-            </nav>
-          </SheetContent>
-        </Sheet>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden" aria-label="Buka menu navigasi">
+                <Menu />
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetTitle>Menu</SheetTitle>
+              <nav aria-label="Navigasi mobile" className="mt-8 flex flex-col gap-1">
+                {NAV_ITEMS.map((item) => {
+                  const active = pathname === item.href || pathname?.startsWith(item.href + "/");
+                  return (
+                    <SheetClose asChild key={item.href}>
+                      <Link
+                        href={item.href}
+                        aria-current={active ? "page" : undefined}
+                        className={cn(
+                          "rounded-sm px-3 py-3 text-base font-medium",
+                          active ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent"
+                        )}
+                      >
+                        {item.label}
+                      </Link>
+                    </SheetClose>
+                  );
+                })}
+              </nav>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
     </header>
   );

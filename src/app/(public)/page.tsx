@@ -88,14 +88,14 @@ export default async function HomePage() {
 
             <Link
               href="/experience"
-              className="group block border border-border p-7 transition-colors hover:bg-accent"
+              className="brutalist-hover group block p-7"
             >
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <h3 className="font-display text-lg font-medium group-hover:underline">{latestExperience.title}</h3>
-                <span className="text-sm text-muted-foreground">· {latestExperience.company}</span>
+                <h3 className="font-display text-2xl font-medium group-hover:underline">{latestExperience.title}</h3>
+                <span className="text-base text-muted-foreground">· {latestExperience.company}</span>
                 {latestExperience.isCurrent && <Badge variant="solid">Current</Badge>}
               </div>
-              <p className="mt-1 font-mono text-xs text-muted-foreground">
+              <p className="mt-2 font-mono text-sm text-muted-foreground">
                 {formatMonthYear(latestExperience.startDate)} —{" "}
                 {latestExperience.isCurrent
                   ? "Sekarang"
@@ -105,7 +105,7 @@ export default async function HomePage() {
                 {" · "}
                 {EMPLOYMENT_TYPE_LABEL[latestExperience.employmentType] ?? latestExperience.employmentType}
               </p>
-              <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{latestExperience.description}</p>
+              <p className="mt-3 line-clamp-2 text-base text-muted-foreground">{latestExperience.description}</p>
             </Link>
           </section>
         )}
@@ -125,18 +125,18 @@ export default async function HomePage() {
               href={topRepo.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="group block border border-border p-7 transition-colors hover:bg-accent"
+              className="brutalist-hover group block p-7"
             >
               <div className="flex items-center justify-between gap-2">
-                <p className="font-mono text-xs text-muted-foreground">
+                <p className="font-mono text-base text-muted-foreground">
                   {topRepo.owner}/{topRepo.name}
                 </p>
                 <Badge variant="outline">{REPO_STATUS_LABEL[topRepo.status] ?? topRepo.status}</Badge>
               </div>
               {topRepo.description && (
-                <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{topRepo.description}</p>
+                <p className="mt-2 line-clamp-2 text-base text-muted-foreground">{topRepo.description}</p>
               )}
-              {topRepo.language && <p className="mt-3 font-mono text-xs text-muted-foreground">{topRepo.language}</p>}
+              {topRepo.language && <p className="mt-3 font-mono text-sm text-muted-foreground">{topRepo.language}</p>}
             </Link>
           </section>
         )}
@@ -162,11 +162,11 @@ export default async function HomePage() {
                 <Link
                   key={project.id}
                   href={`/project/${project.slug}`}
-                  className="group block border border-border p-7 transition-colors hover:bg-accent"
+                  className="brutalist-hover group block p-7"
                 >
-                  <p className="font-mono text-xs text-muted-foreground">{String(i + 1).padStart(2, "0")}</p>
-                  <h3 className="mt-2 font-display text-lg font-medium group-hover:underline">{project.title}</h3>
-                  <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{project.summary}</p>
+                  <p className="font-mono text-sm text-muted-foreground">{String(i + 1).padStart(2, "0")}</p>
+                  <h3 className="mt-2 font-display text-2xl font-medium group-hover:underline">{project.title}</h3>
+                  <p className="mt-2 line-clamp-2 text-base text-muted-foreground">{project.summary}</p>
                 </Link>
               ))}
             </div>

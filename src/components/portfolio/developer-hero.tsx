@@ -285,7 +285,14 @@ export function DeveloperHero({ name, role, skills = [] }: { name: string; role:
           <Button asChild>
             <Link href="/project">Lihat Project</Link>
           </Button>
-          <Button asChild variant="outline">
+          {/* Not `variant="outline"` — that variant's own `hover:bg-accent`
+              would fight with `.brutalist-hover`'s background over who
+              wins on hover. Built from the default variant instead, with
+              its primary-color classes overridden back to an outline
+              look (tailwind-merge resolves same-property overrides when
+              passed via `className`, so this is the only background/
+              border rule active on hover, matching ThemeToggle exactly). */}
+          <Button asChild className="brutalist-hover border-border bg-background text-foreground hover:opacity-100">
             <Link href="/contact">Hubungi Saya</Link>
           </Button>
         </div>

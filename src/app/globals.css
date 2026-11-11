@@ -138,6 +138,31 @@
 }
 
 @layer components {
+  /* The "pressable brutalist card" hover effect — a hard-edged shadow
+     offset to the corner that grows on hover (translate the element
+     slightly away from its own shadow) and collapses flush on :active
+     (as if physically pressed in). First built for ThemeToggle, reused
+     here as a shared class so the hero's secondary CTA and the Home
+     page's Experience/GitHub/Project cards all get the exact same
+     interaction rather than copy-pasted near-duplicates. */
+  .brutalist-hover {
+    @apply border border-border bg-background shadow-none transition-[transform,box-shadow] duration-150 ease-out;
+  }
+  .brutalist-hover:hover {
+    @apply -translate-x-0.5 -translate-y-0.5 shadow-[5px_5px_0_0_hsl(var(--foreground))];
+  }
+  .brutalist-hover:active {
+    @apply translate-x-0 translate-y-0 shadow-none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .brutalist-hover {
+      transition: none;
+    }
+    .brutalist-hover:hover {
+      transform: none;
+    }
+  }
+
   /* Thin editorial rule used as section separators / archive dividers */
   .rule {
     @apply border-t border-border;
