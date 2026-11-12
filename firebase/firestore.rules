@@ -36,12 +36,18 @@ function isValidSocialLink(link) {
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // site/profile, site/contact
+    // site/profile, site/contact, site/now.
+    // site/stats (the retro hit counter) is deliberately NOT listed here —
+    // it's incremented/read exclusively by the Admin SDK from the shared
+    // public layout (see features/stats/queries.ts), never by a client SDK
+    // call, so it falls through to the default-deny rule below, same as
+    // `messages`.
     match /site/{docId} {
-      allow read: if docId in ['profile', 'contact'];
+      allow read: if docId in ['profile', 'contact', 'now'];
       allow write: if isAdmin()
-        && request.resource.data.keys().hasAll(docId == 'profile'
-            ? ['name', 'role', 'bio', 'skills', 'socialLinks']
+        && request.resource.data.keys().hasAll(
+            docId == 'profile' ? ['name', 'role', 'bio', 'skills', 'socialLinks']
+            : docId == 'now' ? ['headline', 'body']
             : ['email', 'socialLinks'])
         && (!('socialLinks' in request.resource.data)
             || request.resource.data.socialLinks.size() <= 12);

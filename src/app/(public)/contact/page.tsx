@@ -15,7 +15,7 @@ export default async function ContactPage() {
   return (
     <div className="container-editorial py-16">
       <SectionHeading
-        index="04 / CONTACT"
+        index="05 / CONTACT"
         title="Contact"
         lead="Punya proyek atau pertanyaan? Kirim pesan langsung melalui form di bawah ini."
       />

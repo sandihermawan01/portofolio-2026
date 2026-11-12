@@ -3,18 +3,29 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger, SheetContent, SheetTitle, SheetClose } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { SoundToggle } from "@/components/layout/sound-toggle";
+import { CrtToggle } from "@/components/layout/crt-toggle";
 
 const BASE_NAV_ITEMS = [
   { href: "/about", label: "About" },
+  { href: "/now", label: "What I Do" },
   { href: "/experience", label: "Experience" },
   { href: "/project", label: "Project" },
   { href: "/contact", label: "Contact" },
 ];
+
+/** Dispatched on `window` — CommandPalette listens for it in its own
+ * `useEffect`. A plain custom event instead of lifting `open` state here
+ * avoids threading the palette's open/close state (and its page/project
+ * data) through Navbar just for one button to reach it. */
+function openCommandPalette() {
+  window.dispatchEvent(new Event("open-command-palette"));
+}
 
 /**
  * `showGithubLink` comes from `github/config.widgetVisible` (fetched in
@@ -30,7 +41,7 @@ export function Navbar({ ownerName, showGithubLink = false }: { ownerName: strin
   const [open, setOpen] = React.useState(false);
 
   const NAV_ITEMS = showGithubLink
-    ? [...BASE_NAV_ITEMS.slice(0, 3), { href: "/github", label: "GitHub" }, ...BASE_NAV_ITEMS.slice(3)]
+    ? [...BASE_NAV_ITEMS.slice(0, 4), { href: "/github", label: "GitHub" }, ...BASE_NAV_ITEMS.slice(4)]
     : BASE_NAV_ITEMS;
 
   return (
@@ -60,6 +71,25 @@ export function Navbar({ ownerName, showGithubLink = false }: { ownerName: strin
         </nav>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={openCommandPalette}
+            aria-label="Buka command palette (Ctrl+K)"
+            title="Cari (Ctrl+K)"
+            className="brutalist-hover inline-flex h-10 w-10 items-center justify-center"
+          >
+            <Search className="h-4 w-4" aria-hidden="true" />
+          </button>
+
+          {/* Sound/CRT toggles are experimental extras — kept off the
+              always-visible mobile row (which is already search + theme +
+              hamburger) and surfaced on desktop here, plus inside the
+              mobile Sheet below so they're still reachable on phones. */}
+          <div className="hidden items-center gap-2 md:flex">
+            <SoundToggle />
+            <CrtToggle />
+          </div>
+
           <ThemeToggle />
 
           <Sheet open={open} onOpenChange={setOpen}>
@@ -89,6 +119,11 @@ export function Navbar({ ownerName, showGithubLink = false }: { ownerName: strin
                   );
                 })}
               </nav>
+
+              <div className="mt-6 flex items-center gap-2 border-t border-border pt-6">
+                <SoundToggle />
+                <CrtToggle />
+              </div>
             </SheetContent>
           </Sheet>
         </div>

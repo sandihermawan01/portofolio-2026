@@ -39,6 +39,9 @@ export default async function AdminOverviewPage() {
           <Link href="/admin/about">Kelola About</Link>
         </Button>
         <Button asChild variant="outline">
+          <Link href="/admin/now">Kelola Now</Link>
+        </Button>
+        <Button asChild variant="outline">
           <Link href="/admin/experience">Kelola Experience</Link>
         </Button>
         <Button asChild variant="outline">

@@ -11,6 +11,7 @@ import { LogoutButton } from "./logout-button";
 const NAV_ITEMS = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/about", label: "About" },
+  { href: "/admin/now", label: "Now" },
   { href: "/admin/experience", label: "Experience" },
   { href: "/admin/projects", label: "Projects" },
   { href: "/admin/github", label: "GitHub" },

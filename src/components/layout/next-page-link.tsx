@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 const PAGE_ORDER = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
+  { href: "/now", label: "What I Do" },
   { href: "/experience", label: "Experience" },
   { href: "/project", label: "Project" },
 ] as const;

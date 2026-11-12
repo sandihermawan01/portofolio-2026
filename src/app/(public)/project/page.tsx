@@ -16,7 +16,7 @@ export default async function ProjectListPage() {
 
   return (
     <div className="container-editorial py-16">
-      <SectionHeading index="03 / PROJECT" title="Project" />
+      <SectionHeading index="04 / PROJECT" title="Project" />
 
       {projects.length === 0 ? (
         <EmptyState title="Belum ada project dipublikasikan" description="Project akan tampil setelah dipublikasikan dari dashboard admin." />

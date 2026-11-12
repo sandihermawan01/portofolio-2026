@@ -7,6 +7,7 @@ import { getPublishedProjects } from "@/features/projects/queries";
 import { getExperiences } from "@/features/experience/queries";
 import { getGithubConfig, getGithubCache } from "@/features/github/queries";
 import { EmptyState } from "@/components/portfolio/empty-state";
+import { StatCell } from "@/components/portfolio/stat-cell";
 import { formatMonthYear } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -45,6 +46,13 @@ export default async function HomePage() {
   // once the admin has turned the feature on and a repo has actually synced.
   const topRepo = githubConfig.widgetVisible ? (githubCache.repos[0] ?? null) : null;
 
+  const repoCount = githubConfig.widgetVisible ? githubCache.repos.length : 0;
+  const skillCount = profile?.skills?.length ?? 0;
+  // Only worth showing once there's actually something to count — a fresh
+  // install with nothing filled in yet would otherwise show a row of
+  // four zeros, which reads as broken rather than "quiet".
+  const hasStats = experiences.length > 0 || projects.length > 0 || skillCount > 0 || repoCount > 0;
+
   return (
     <div className="pb-16 sm:pb-24">
       <DeveloperHero
@@ -58,6 +66,18 @@ export default async function HomePage() {
           <p className="motion-safe:animate-fade-in-up max-w-none px-4 text-base leading-relaxed text-muted-foreground sm:px-6 sm:text-lg">
             {profile.bio}
           </p>
+        )}
+
+        {hasStats && (
+          <section
+            aria-label="Statistik singkat"
+            className="motion-safe:animate-fade-in-up mt-10 flex flex-wrap gap-x-10 gap-y-6"
+          >
+            {experiences.length > 0 && <StatCell value={experiences.length} label="EXPERIENCE" />}
+            {projects.length > 0 && <StatCell value={projects.length} label="PROJECT" />}
+            {skillCount > 0 && <StatCell value={skillCount} label="SKILL" />}
+            {repoCount > 0 && <StatCell value={repoCount} label="REPO" />}
+          </section>
         )}
 
         {profile?.skills && profile.skills.length > 0 && (

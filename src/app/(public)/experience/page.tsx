@@ -14,7 +14,7 @@ export default async function ExperiencePage() {
 
   return (
     <div className="container-editorial py-16">
-      <SectionHeading index="02 / EXPERIENCE" title="Experience" />
+      <SectionHeading index="03 / EXPERIENCE" title="Experience" />
 
       {experiences.length === 0 ? (
         <EmptyState title="Belum ada riwayat pengalaman" description="Tambahkan pengalaman dari dashboard admin." />

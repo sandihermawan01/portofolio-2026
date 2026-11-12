@@ -192,6 +192,55 @@
   :root[data-theme="dark"] .grain-overlay {
     mix-blend-mode: overlay;
   }
+
+  /* Old-CRT scanline overlay — always rendered (see app/layout.tsx), but
+     invisible (opacity 0) unless CrtToggle has set `data-crt="on"` on
+     <html>, so the component itself never needs to conditionally mount or
+     unmount anything. A repeating 1px-line gradient reads as scanlines at
+     normal viewing distance without needing an image asset. Sits above the
+     grain overlay (z-index 51 > 50) since it's the more deliberate, opt-in
+     effect of the two. */
+  .crt-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 51;
+    opacity: 0;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      hsl(var(--foreground) / 0.07) 0px,
+      hsl(var(--foreground) / 0.07) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    transition: opacity 150ms ease-out;
+  }
+
+  :root[data-crt="on"] .crt-overlay {
+    opacity: 1;
+  }
+
+  :root[data-crt="on"] .crt-overlay {
+    animation: crt-flicker 6s ease-in-out infinite;
+  }
+
+  @keyframes crt-flicker {
+    0%,
+    96%,
+    100% {
+      opacity: 1;
+    }
+    97% {
+      opacity: 0.85;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .crt-overlay {
+      transition: none;
+      animation: none !important;
+    }
+  }
 }
 
 @media (prefers-color-scheme: dark) {

@@ -71,6 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={`${display.variable} ${sans.variable} ${mono.variable} font-sans`}>
         <div className="grain-overlay" aria-hidden="true" />
+        <div className="crt-overlay" aria-hidden="true" />
         <RouteProgressBar />
         {children}
         <Toaster />
