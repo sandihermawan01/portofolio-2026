@@ -249,6 +249,94 @@
   }
 }
 
+@layer components {
+  /* Retro "glitch" text — ghost copies of the same string offset via
+     animated `clip-path` bands and a little horizontal jitter, used only
+     on the page-transition prompt chip (PixelTransitionOverlay). Kept
+     strictly monochrome (foreground/muted-foreground only, no red/cyan
+     channel split) to stay inside this site's "no saturated color"
+     design tokens — see the "Monochrome Retro design tokens" comment up
+     top. `data-text` must match the element's real text content; it
+     feeds the ::before/::after copies via `content: attr(data-text)`
+     since pseudo-elements can't just inherit children. */
+  .glitch-text {
+    position: relative;
+    display: inline-block;
+  }
+  .glitch-text::before,
+  .glitch-text::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: hsl(var(--background));
+    pointer-events: none;
+  }
+  .glitch-text::before {
+    color: hsl(var(--foreground));
+    animation: glitch-shift-1 360ms steps(2, jump-none) both;
+  }
+  .glitch-text::after {
+    color: hsl(var(--muted-foreground));
+    animation: glitch-shift-2 360ms steps(2, jump-none) both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glitch-text::before,
+    .glitch-text::after {
+      display: none;
+    }
+  }
+}
+
+@keyframes glitch-shift-1 {
+  0% {
+    transform: translate(0, 0);
+    clip-path: inset(10% 0 70% 0);
+  }
+  25% {
+    transform: translate(-3px, 0);
+    clip-path: inset(40% 0 20% 0);
+  }
+  50% {
+    transform: translate(2px, 0);
+    clip-path: inset(5% 0 80% 0);
+  }
+  75% {
+    transform: translate(-2px, 0);
+    clip-path: inset(60% 0 10% 0);
+  }
+  100% {
+    transform: translate(0, 0);
+    clip-path: inset(0 0 100% 0);
+    opacity: 0;
+  }
+}
+
+@keyframes glitch-shift-2 {
+  0% {
+    transform: translate(0, 0);
+    clip-path: inset(70% 0 5% 0);
+  }
+  25% {
+    transform: translate(3px, 0);
+    clip-path: inset(20% 0 45% 0);
+  }
+  50% {
+    transform: translate(-2px, 0);
+    clip-path: inset(85% 0 2% 0);
+  }
+  75% {
+    transform: translate(2px, 0);
+    clip-path: inset(15% 0 55% 0);
+  }
+  100% {
+    transform: translate(0, 0);
+    clip-path: inset(100% 0 0 0);
+    opacity: 0;
+  }
+}
+
 /* ==========================================================================
    Retro "pixel dissolve" page transition, via the native View Transitions
    API (document.startViewTransition — see ViewTransitionsProvider, which

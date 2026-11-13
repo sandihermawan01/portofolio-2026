@@ -93,6 +93,22 @@ const config: Config = {
           "65%": { transform: "scaleX(0.1) rotate(100deg)" },
           "100%": { transform: "scaleX(1) rotate(360deg)" },
         },
+        // Page-transition v3 — "CRT power-off/power-on": the page content
+        // itself pinches down to a thin horizontal line and back, the way
+        // an old CRT television collapses when switched off. Pure
+        // transform + opacity (no overlay, no flat color block anywhere),
+        // so there's never a sudden large-area color change — just motion.
+        "crt-collapse": {
+          "0%": { transform: "scaleY(1) scaleX(1)", opacity: "1" },
+          "60%": { transform: "scaleY(0.35) scaleX(0.98)", opacity: "0.75" },
+          "100%": { transform: "scaleY(0.02) scaleX(0.85)", opacity: "0" },
+        },
+        "crt-expand": {
+          "0%": { transform: "scaleY(0.02) scaleX(0.85)", opacity: "0" },
+          "45%": { transform: "scaleY(0.35) scaleX(0.98)", opacity: "0.75" },
+          "80%": { transform: "scaleY(1.02) scaleX(1.005)", opacity: "1" },
+          "100%": { transform: "scaleY(1) scaleX(1)", opacity: "1" },
+        },
       },
       animation: {
         "fade-in": "fade-in 180ms ease-out",
@@ -103,6 +119,8 @@ const config: Config = {
         "pixel-tile-in": "pixel-tile-in 200ms ease-out both",
         "pixel-tile-out": "pixel-tile-out 200ms ease-in both",
         "theme-flip": "theme-flip 420ms steps(7, end) both",
+        "crt-collapse": "crt-collapse 220ms cubic-bezier(0.4,0,1,1) both",
+        "crt-expand": "crt-expand 260ms cubic-bezier(0,0,0.2,1) both",
       },
     },
   },
