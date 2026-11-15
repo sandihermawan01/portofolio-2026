@@ -39,9 +39,6 @@ export default async function AdminOverviewPage() {
           <Link href="/admin/about">Kelola About</Link>
         </Button>
         <Button asChild variant="outline">
-          <Link href="/admin/now">Kelola Now</Link>
-        </Button>
-        <Button asChild variant="outline">
           <Link href="/admin/experience">Kelola Experience</Link>
         </Button>
         <Button asChild variant="outline">
@@ -51,6 +48,18 @@ export default async function AdminOverviewPage() {
           <Link href="/admin/settings">Pengaturan Contact</Link>
         </Button>
       </div>
+
+      {/* The "Now" page no longer has its own admin section — it's
+          entirely derived from whichever project has "Featured / pinned"
+          turned on below, so that's where it's actually controlled. */}
+      <p className="mt-4 text-xs text-muted-foreground">
+        Halaman "What I Do" otomatis mengikuti project yang ditandai{" "}
+        <span className="font-medium text-foreground">Featured / pinned</span> di{" "}
+        <Link href="/admin/projects" className="underline underline-offset-4 hover:text-foreground">
+          Kelola Project
+        </Link>
+        .
+      </p>
 
       {/* Short summary only, not a full stat grid — the full detail (repo
           list, sync errors, manual sync button) lives at /admin/github. */}

@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger, SheetContent, SheetTitle, SheetClose } from "@/components/ui/sheet";
 import { LogoutButton } from "./logout-button";
 
+// No "Now" entry anymore — see the matching comment in admin-sidebar.tsx.
 const NAV_ITEMS = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/about", label: "About" },
-  { href: "/admin/now", label: "Now" },
   { href: "/admin/experience", label: "Experience" },
   { href: "/admin/projects", label: "Projects" },
   { href: "/admin/github", label: "GitHub" },

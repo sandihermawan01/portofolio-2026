@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, User, Clock, Briefcase, FolderKanban, Github, Settings } from "lucide-react";
+import { LayoutDashboard, User, Briefcase, FolderKanban, Github, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LogoutButton } from "./logout-button";
 
+// No "Now" entry anymore — the Now page has no admin content of its own
+// to manage; it's derived from whichever project has "Featured / pinned"
+// turned on in the Projects form below.
 const NAV_ITEMS = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/about", label: "About", icon: User },
-  { href: "/admin/now", label: "Now", icon: Clock },
   { href: "/admin/experience", label: "Experience", icon: Briefcase },
   { href: "/admin/projects", label: "Projects", icon: FolderKanban },
   { href: "/admin/github", label: "GitHub", icon: Github },

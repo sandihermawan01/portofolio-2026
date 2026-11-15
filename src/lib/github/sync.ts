@@ -10,15 +10,23 @@ const CONFIG_DOC_PATH = "github/config";
 const CACHE_DOC_PATH = "github/cache";
 
 // Fetched per repo before merging + sorting across all selected repos, so
-// the global top-3 can still surface a repo whose most recent commit isn't
+// the global top-N can still surface a repo whose most recent commit isn't
 // its *very* latest fetched one relative to others.
 const COMMITS_PER_REPO_FETCH = 5;
-const GLOBAL_LATEST_COMMITS_COUNT = 3;
+// This used to be the final display count too (3), but the cache is also
+// now the source for the "Now" page's per-repo commit list — which needs
+// up to 5 commits for ONE specific repo, not a blend of the top few across
+// every selected repo. A generous cap here just bounds the cache doc's
+// size; each individual page (the GitHub Activity page, the Now page)
+// slices down to however many it actually wants to show at render time.
+const CACHED_COMMITS_COUNT = 30;
 
 /**
  * Runs a full GitHub Activity sync: contribution calendar + metadata for
- * every selected repo + the 3 most recent commits across all of them.
- * Writes the result to `github/cache` (merge: true) via the Admin SDK.
+ * every selected repo + their most recent commits (merged, sorted, capped
+ * at `CACHED_COMMITS_COUNT` — see that constant's own comment for why this
+ * is no longer just "the 3 shown on the GitHub page"). Writes the result
+ * to `github/cache` (merge: true) via the Admin SDK.
  *
  * Fallback behavior (per the product requirement "pakai data cache
  * terakhir jika GitHub API gagal"): each section is fetched independently
@@ -115,7 +123,7 @@ export async function syncGithubActivity(): Promise<SyncResult> {
     }
     if (anyCommitsSucceeded) {
       allCommits.sort((a, b) => new Date(b.committedAt).getTime() - new Date(a.committedAt).getTime());
-      update.commits = allCommits.slice(0, GLOBAL_LATEST_COMMITS_COUNT);
+      update.commits = allCommits.slice(0, CACHED_COMMITS_COUNT);
       update.commitsFetchedAt = FieldValue.serverTimestamp();
     }
   }

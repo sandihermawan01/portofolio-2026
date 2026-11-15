@@ -25,9 +25,18 @@ const STATUS_LABEL: Record<string, string> = {
  * the repo list, an empty repo list doesn't hide the heatmap, etc. — one
  * piece of unconfigured/stale data never blanks the whole section.
  */
+/** How many commits this page itself shows — the cache doc now holds a
+ * much bigger pool (up to 30, across every selected repo; see
+ * `CACHED_COMMITS_COUNT` in `lib/github/sync.ts`) because the "Now" page
+ * needs up to 5 for one specific repo, not a handful blended across all
+ * of them. This page's own look stays exactly as it was: just the latest
+ * few, mixed across repos. */
+const LATEST_COMMITS_SHOWN = 3;
+
 export function GithubActivitySection({ config, cache }: { config: GithubConfig; cache: GithubCache }) {
   const hasAnyError = cache.lastSyncErrors.length > 0;
   const isStale = isCacheStale(cache.lastSyncedAt);
+  const latestCommits = cache.commits.slice(0, LATEST_COMMITS_SHOWN);
 
   return (
     <div className="space-y-12">
@@ -131,13 +140,13 @@ export function GithubActivitySection({ config, cache }: { config: GithubConfig;
         <h2 id="commits-heading" className="font-display text-xl font-medium">
           Latest Commits
         </h2>
-        {cache.commits.length === 0 ? (
+        {latestCommits.length === 0 ? (
           <div className="mt-4">
             <EmptyState title="Belum ada commit terbaru" description="Akan tampil setelah sinkronisasi menemukan commit dari repository yang dipilih." />
           </div>
         ) : (
           <ol className="mt-4 divide-y divide-border border border-border font-mono text-sm">
-            {cache.commits.map((commit, i) => (
+            {latestCommits.map((commit, i) => (
               <li
                 key={commit.sha}
                 style={{ animationDelay: `${250 + i * 80}ms` }}

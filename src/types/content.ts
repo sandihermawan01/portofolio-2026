@@ -1,7 +1,6 @@
 import type { ProfileInput, ContactInfoInput } from "@/lib/validations/profile";
 import type { ExperienceInput } from "@/lib/validations/experience";
 import type { ProjectInput } from "@/lib/validations/project";
-import type { NowInput } from "@/lib/validations/now";
 import type { SocialLink } from "@/lib/validations/common";
 
 export type { SocialLink };
@@ -27,11 +26,6 @@ export interface Experience extends ExperienceInput {
 export interface Project extends ProjectInput {
   id: string;
   createdAt: string;
-  updatedAt: string;
-}
-
-/** Firestore doc `site/now`. */
-export interface NowContent extends NowInput {
   updatedAt: string;
 }
 

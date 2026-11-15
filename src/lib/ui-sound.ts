@@ -1,44 +1,28 @@
-/**
- * Tiny retro "blip" sound effects, generated on the fly via the Web Audio
- * API oscillator — no audio asset files, no new dependency. Muted by
- * default; the person has to explicitly turn it on via SoundToggle before
- * anything ever plays.
- *
- * Client-only module (no "use client" needed — it exports plain functions,
- * not a component — but every function here guards for `typeof window`
- * since it can still be imported from a file that's part of a server
- * bundle's module graph).
- */
 
-const STORAGE_KEY = "uisound";
-
-// Cached in memory so hot paths (hover/click delegation in SoundEffects)
-// don't hit localStorage on every single pointer move.
-let cachedEnabled: boolean | null = null;
+let enabled = false;
 let audioCtx: AudioContext | null = null;
-
-export function isSoundEnabled(): boolean {
-  if (cachedEnabled !== null) return cachedEnabled;
-  if (typeof window === "undefined") return false;
-  try {
-    cachedEnabled = window.localStorage.getItem(STORAGE_KEY) === "on";
-  } catch {
-    cachedEnabled = false;
-  }
-  return cachedEnabled;
+let hasUserGesture = false;
+if (typeof window !== "undefined") {
+  const markGestureSeen = () => {
+    hasUserGesture = true;
+  };
+  // `once: true` on all three — whichever fires first unregisters itself,
+  // the others are left to no-op (harmless) or just never fire.
+  window.addEventListener("pointerdown", markGestureSeen, { once: true, capture: true });
+  window.addEventListener("keydown", markGestureSeen, { once: true, capture: true });
+  window.addEventListener("touchstart", markGestureSeen, { once: true, capture: true });
 }
 
-export function setSoundEnabled(enabled: boolean) {
-  cachedEnabled = enabled;
-  try {
-    window.localStorage.setItem(STORAGE_KEY, enabled ? "on" : "off");
-  } catch {
-    // Not remembered next time, but still works for this page view.
-  }
+export function isSoundEnabled(): boolean {
+  return enabled;
+}
+
+export function setSoundEnabled(next: boolean) {
+  enabled = next;
 }
 
 function getContext(): AudioContext | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined" || !hasUserGesture) return null;
   const Ctor =
     window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!Ctor) return null;

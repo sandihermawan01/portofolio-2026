@@ -6,17 +6,6 @@ import { Toaster } from "@/components/ui/sonner";
 import { RouteProgressBar } from "@/components/layout/route-progress-bar";
 import { clientEnv } from "@/config/env";
 
-/**
- * Applies a previously-saved light/dark choice (see ThemeToggle) to
- * `<html data-theme>` before React hydrates/paints anything — without
- * this, the page would render in the default theme for a frame and then
- * visibly flash to the saved one. `strategy="beforeInteractive"` is
- * Next.js's blessed way to inject a script into `<head>` that runs before
- * the page becomes interactive; if there's no saved preference (first
- * visit, or localStorage blocked), it does nothing and the page falls
- * back to the `@media (prefers-color-scheme: dark)` CSS in globals.css,
- * same as before this feature existed.
- */
 const THEME_INIT_SCRIPT = `
   try {
     var t = localStorage.getItem("theme");
@@ -58,6 +47,13 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+  },
+  // Favicon/home-screen icon files live in `public/icons/` (plain static
+  // assets, not Next's `app/icon.png` auto-detection convention) so this
+  // config is what actually wires them up.
+  icons: {
+    icon: "/icons/favicon-public-icon.png",
+    apple: "/icons/favicon-public-apple-icon.png",
   },
 };
 
