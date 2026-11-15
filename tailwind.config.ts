@@ -98,6 +98,28 @@ const config: Config = {
         // an old CRT television collapses when switched off. Pure
         // transform + opacity (no overlay, no flat color block anywhere),
         // so there's never a sudden large-area color change — just motion.
+        // Page-transition "dynamic shards": each tile gets its own random
+        // rotation/offset via CSS custom properties set inline per-tile
+        // (--rot/--tx/--ty), referenced here so one keyframe definition
+        // still produces a different little flight path for every tile.
+        "pixel-shard-in": {
+          "0%": { transform: "scale(0) rotate(var(--rot, 0deg)) translate(var(--tx, 0), var(--ty, 0))", opacity: "0" },
+          "60%": {
+            transform:
+              "scale(1.12) rotate(calc(var(--rot, 0deg) * 0.2)) translate(calc(var(--tx, 0) * 0.2), calc(var(--ty, 0) * 0.2))",
+            opacity: "1",
+          },
+          "100%": { transform: "scale(1) rotate(0deg) translate(0, 0)", opacity: "1" },
+        },
+        "pixel-shard-out": {
+          "0%": { transform: "scale(1) rotate(0deg) translate(0, 0)", opacity: "1" },
+          "40%": {
+            transform:
+              "scale(1.12) rotate(calc(var(--rot, 0deg) * 0.2)) translate(calc(var(--tx, 0) * 0.2), calc(var(--ty, 0) * 0.2))",
+            opacity: "1",
+          },
+          "100%": { transform: "scale(0) rotate(var(--rot, 0deg)) translate(var(--tx, 0), var(--ty, 0))", opacity: "0" },
+        },
         "crt-collapse": {
           "0%": { transform: "scaleY(1) scaleX(1)", opacity: "1" },
           "60%": { transform: "scaleY(0.35) scaleX(0.98)", opacity: "0.75" },
@@ -119,6 +141,8 @@ const config: Config = {
         "pixel-tile-in": "pixel-tile-in 200ms ease-out both",
         "pixel-tile-out": "pixel-tile-out 200ms ease-in both",
         "theme-flip": "theme-flip 420ms steps(7, end) both",
+        "pixel-shard-in": "pixel-shard-in 220ms cubic-bezier(0.2,0.8,0.3,1.3) both",
+        "pixel-shard-out": "pixel-shard-out 200ms cubic-bezier(0.6,0,0.8,0.2) both",
         "crt-collapse": "crt-collapse 220ms cubic-bezier(0.4,0,1,1) both",
         "crt-expand": "crt-expand 260ms cubic-bezier(0,0,0.2,1) both",
       },
