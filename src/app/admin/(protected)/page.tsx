@@ -53,7 +53,7 @@ export default async function AdminOverviewPage() {
           entirely derived from whichever project has "Featured / pinned"
           turned on below, so that's where it's actually controlled. */}
       <p className="mt-4 text-xs text-muted-foreground">
-        Halaman "What I Do" otomatis mengikuti project yang ditandai{" "}
+        Halaman &quot;What I Do&quot; otomatis mengikuti project yang ditandai{" "}
         <span className="font-medium text-foreground">Featured / pinned</span> di{" "}
         <Link href="/admin/projects" className="underline underline-offset-4 hover:text-foreground">
           Kelola Project
