@@ -61,6 +61,23 @@ const config: Config = {
           from: { opacity: "0", transform: "translateY(4px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
+        "fade-out": {
+          from: { opacity: "1" },
+          to: { opacity: "0" },
+        },
+        // Mobile nav Sheet panel — slides in from/out to the right edge it's
+        // docked to. Driven by Radix's own `data-state` attribute (see
+        // `sheet.tsx`), which also lets Radix's Presence wait for this exit
+        // animation to actually finish before unmounting the panel, instead
+        // of it just vanishing instantly on close.
+        "slide-in-right": {
+          from: { transform: "translateX(100%)" },
+          to: { transform: "translateX(0)" },
+        },
+        "slide-out-right": {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(100%)" },
+        },
         blink: {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0" },
@@ -134,6 +151,9 @@ const config: Config = {
       },
       animation: {
         "fade-in": "fade-in 180ms ease-out",
+        "fade-out": "fade-out 180ms ease-in",
+        "slide-in-right": "slide-in-right 300ms cubic-bezier(0.16,1,0.3,1) both",
+        "slide-out-right": "slide-out-right 220ms cubic-bezier(0.6,0,0.8,0.2) both",
         blink: "blink 1s step-end infinite",
         "fade-in-up": "fade-in-up 500ms ease-out both",
         "scale-in": "scale-in 400ms cubic-bezier(0.16,1,0.3,1) both",

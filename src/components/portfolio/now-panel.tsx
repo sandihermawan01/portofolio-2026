@@ -43,15 +43,33 @@ export function NowPanel({ projects, children }: { projects: Project[]; children
         : [];
 
   return (
-    <div className="grid overflow-hidden border-t border-border md:grid-cols-2">
-      <div className="flex h-full flex-col justify-between md:border-r md:border-border">
+    // No `overflow-hidden`/`h-full` here on purpose — CSS Grid's default
+    // `align-items: stretch` already makes both columns match the taller
+    // one's height on its own. Pairing that with explicit `h-full` on
+    // the items themselves set up a circular size reference (each side's
+    // height depending on the row's height, which depends on each side's
+    // height) that the browser could resolve to a too-short row, with
+    // `overflow-hidden` then silently clipping whatever didn't fit —
+    // which is what was actually cutting content off, not a sizing
+    // mistake in the content itself.
+    //
+    // `grid-cols-1` explicitly, not just bare `grid` before `md:`: a
+    // Tailwind `grid-cols-N` utility generates `minmax(0, 1fr)` tracks,
+    // which is what stops a long/overflowing descendant from stretching
+    // the column itself. Plain `grid` with no column utility at all gets
+    // one implicit `auto`-sized track instead — no `minmax(0, ...)` floor
+    // — so anything inside that resists shrinking was free to blow the
+    // whole grid (and the page) wider than the viewport on mobile, which
+    // is what the horizontal scroll was.
+    <div className="grid grid-cols-1 border-t border-border md:grid-cols-2">
+      <div className="flex flex-col justify-between md:border-r md:border-border">
         <NowPinnedList projects={projects} openIndex={openIndex} onHoverChange={setHoveredIndex} />
         {children}
       </div>
 
       <Link
         href={`/project/${openProject.slug}`}
-        className="block h-full transition-[filter] duration-200 hover:brightness-95"
+        className="block transition-[filter] duration-200 hover:brightness-95"
       >
         {/* `key` forces a remount per project so the carousel's own
             auto-advance index resets to 0 and its cross-fade starts

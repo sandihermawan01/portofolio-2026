@@ -59,8 +59,8 @@ export function NowPinnedList({
                 <span
                   className={
                     isOpen
-                      ? "line-clamp-2 mt-2 max-h-10 text-xs text-muted-foreground opacity-100 transition-all duration-300 ease-out"
-                      : "line-clamp-2 max-h-0 text-xs text-muted-foreground opacity-0 transition-all duration-300 ease-out"
+                      ? "line-clamp-2 mt-2 min-w-0 max-h-16 text-xs text-muted-foreground opacity-100 transition-all duration-300 ease-out"
+                      : "line-clamp-2 min-w-0 max-h-0 text-xs text-muted-foreground opacity-0 transition-all duration-300 ease-out"
                   }
                 >
                   {project.summary}

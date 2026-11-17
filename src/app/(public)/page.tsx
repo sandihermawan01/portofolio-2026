@@ -71,7 +71,7 @@ export default async function HomePage() {
         {hasStats && (
           <section
             aria-label="Statistik singkat"
-            className="motion-safe:animate-fade-in-up mt-10 flex flex-wrap gap-x-10 gap-y-6"
+            className="motion-safe:animate-fade-in-up mt-10 flex flex-wrap justify-center gap-x-10 gap-y-6 sm:justify-start"
           >
             {experiences.length > 0 && <StatCell value={experiences.length} label="EXPERIENCE" />}
             {projects.length > 0 && <StatCell value={projects.length} label="PROJECT" />}
@@ -97,7 +97,7 @@ export default async function HomePage() {
 
         {latestExperience && (
           <section aria-labelledby="experience-heading" className="rule mt-16 pt-8">
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-6 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h2 id="experience-heading" className="index-label">
                 EXPERIENCE
               </h2>
@@ -132,7 +132,7 @@ export default async function HomePage() {
 
         {topRepo && (
           <section aria-labelledby="github-heading" className="rule mt-16 pt-8">
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-6 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h2 id="github-heading" className="index-label">
                 CURRENTLY DEVELOPING
               </h2>
@@ -147,11 +147,13 @@ export default async function HomePage() {
               rel="noopener noreferrer"
               className="brutalist-hover group block p-7"
             >
-              <div className="flex items-center justify-between gap-2">
-                <p className="font-mono text-base text-muted-foreground">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="min-w-0 break-words font-mono text-base text-muted-foreground">
                   {topRepo.owner}/{topRepo.name}
                 </p>
-                <Badge variant="outline">{REPO_STATUS_LABEL[topRepo.status] ?? topRepo.status}</Badge>
+                <Badge variant="outline" className="shrink-0">
+                  {REPO_STATUS_LABEL[topRepo.status] ?? topRepo.status}
+                </Badge>
               </div>
               {topRepo.description && (
                 <p className="mt-2 line-clamp-2 text-base text-muted-foreground">{topRepo.description}</p>
@@ -162,7 +164,7 @@ export default async function HomePage() {
         )}
 
         <section aria-labelledby="featured-heading" className="rule mt-16 pt-8">
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-6 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 id="featured-heading" className="index-label">
               SELECTED PROJECTS
             </h2>

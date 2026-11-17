@@ -3,13 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger, SheetContent, SheetTitle, SheetClose } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { SoundToggle } from "@/components/layout/sound-toggle";
 import { CrtToggle } from "@/components/layout/crt-toggle";
+import { HamburgerIcon } from "@/components/layout/hamburger-icon";
 
 const BASE_NAV_ITEMS = [
   { href: "/about", label: "About" },
@@ -94,8 +95,13 @@ export function Navbar({ ownerName, showGithubLink = false }: { ownerName: strin
 
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden" aria-label="Buka menu navigasi">
-                <Menu />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                aria-label={open ? "Tutup menu navigasi" : "Buka menu navigasi"}
+              >
+                <HamburgerIcon open={open} />
               </Button>
             </SheetTrigger>
             <SheetContent>

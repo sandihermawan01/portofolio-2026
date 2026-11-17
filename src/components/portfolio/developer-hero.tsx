@@ -240,6 +240,9 @@ export function DeveloperHero({ name, role, skills = [] }: { name: string; role:
   const [typedTagline, setTypedTagline] = React.useState("");
   const [doneTyping, setDoneTyping] = React.useState(false);
 
+  const heroRef = React.useRef<HTMLDivElement>(null);
+  const contentRef = React.useRef<HTMLDivElement>(null);
+
   React.useEffect(() => {
     const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     if (prefersReducedMotion) {
@@ -261,12 +264,64 @@ export function DeveloperHero({ name, role, skills = [] }: { name: string; role:
     return () => clearInterval(interval);
   }, []);
 
+  // A very small parallax tilt on the text block, following the cursor —
+  // this is what actually reads as "dynamic" rather than a static poster:
+  // the typewriter headline only plays once on load, so after that the
+  // whole hero used to just sit there inert. Kept deliberately subtle
+  // (a few px of travel, eased) so it adds life without feeling gimmicky,
+  // and applied with a direct style mutation (not React state) since this
+  // fires on every mousemove and a re-render per frame would be wasteful
+  // — the same imperative approach `GraphCanvas` already uses above.
+  React.useEffect(() => {
+    const hero = heroRef.current;
+    const content = contentRef.current;
+    if (!hero || !content) return;
+
+    const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) return;
+
+    const MAX_OFFSET_PX = 10;
+
+    function onMouseMove(e: MouseEvent) {
+      const rect = hero!.getBoundingClientRect();
+      const nx = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 .. 0.5
+      const ny = (e.clientY - rect.top) / rect.height - 0.5;
+      content!.style.transform = `translate3d(${nx * MAX_OFFSET_PX}px, ${ny * MAX_OFFSET_PX}px, 0)`;
+    }
+    function onMouseLeave() {
+      content!.style.transform = "translate3d(0, 0, 0)";
+    }
+
+    hero.addEventListener("mousemove", onMouseMove);
+    hero.addEventListener("mouseleave", onMouseLeave);
+    return () => {
+      hero.removeEventListener("mousemove", onMouseMove);
+      hero.removeEventListener("mouseleave", onMouseLeave);
+    };
+  }, []);
+
   return (
-    <div className="relative mb-16 h-[62vh] min-h-[420px] max-h-[640px] overflow-hidden border-b border-border">
+    <div
+      ref={heroRef}
+      className="relative mb-16 h-[62vh] min-h-[420px] max-h-[640px] overflow-hidden border-b border-border"
+    >
       <GraphCanvas skills={skills} />
 
-      <div className="container-editorial pointer-events-none relative flex h-full flex-col justify-center">
-        <p className="index-label motion-safe:animate-fade-in mb-4">INDEX — 00 / HOME</p>
+      <div
+        ref={contentRef}
+        className="container-editorial pointer-events-none relative flex h-full flex-col justify-center transition-transform duration-300 ease-out motion-reduce:!transform-none"
+      >
+        <p className="index-label motion-safe:animate-fade-in mb-4 flex items-center gap-2">
+          {/* Small "live" status dot — a steady center with a ring that
+              expands and fades on loop (Tailwind's built-in `animate-ping`),
+              like a terminal's "system active" indicator. Reinforces that
+              this is a live, working site rather than a static mockup. */}
+          <span className="relative flex h-2 w-2" aria-hidden="true">
+            <span className="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full bg-foreground opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-foreground" />
+          </span>
+          INDEX — 00 / HOME
+        </p>
 
         <p className="motion-safe:animate-fade-in font-mono text-base text-muted-foreground sm:text-lg">
           {name || "Nama belum diisi"} <span className="text-foreground">/</span> {role || "Role belum diisi"}
