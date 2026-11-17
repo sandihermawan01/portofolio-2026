@@ -4,7 +4,7 @@ Website portofolio personal full-stack: area publik (About, Experience,
 Project, Contact) + dashboard admin privat untuk mengelola konten, dibangun
 dengan Next.js (App Router, TypeScript), Tailwind CSS, Firebase
 (Authentication + Firestore — **keduanya gratis di plan Spark**), dan
-Cloudinary untuk upload gambar (juga gratis, tanpa kartu kredit).
+Cloudinary untuk upload gambar (juga gratis).
 
 Dokumen terkait:
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — route map, model auth,
@@ -15,7 +15,7 @@ Dokumen terkait:
 ## 1. Prasyarat
 
 - Node.js ≥ 20.9
-- Akun Firebase (plan gratis **Spark** — proyek ini hanya memakai
+- Akun Firebase (proyek ini hanya memakai
   Authentication + Firestore, keduanya tersedia penuh di Spark, **tidak**
   perlu upgrade ke Blaze)
 - Akun Cloudinary gratis (untuk upload gambar — lihat bagian 3.5; dipakai
