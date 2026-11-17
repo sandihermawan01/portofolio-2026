@@ -154,9 +154,18 @@ export interface RepoMetadataResult {
   isPrivate: boolean;
 }
 
-/** Fetches public metadata for one repo. Throws if the repo doesn't exist,
- * isn't reachable with the configured token, or (deliberately) if it's
- * private — this widget only ever shows public work. */
+/** Fetches metadata for one repo. Throws if the repo doesn't exist or
+ * isn't reachable with the configured token.
+ *
+ * Private repos are allowed through (this used to throw for them, back
+ * when this client only ever fed the public GitHub Activity page — see
+ * git history/changelog if curious). The "Now" page now also needs to
+ * sync commits for whichever repo the currently-featured project points
+ * at, and that can legitimately be a private, still-in-progress repo.
+ * The returned `isPrivate` flag is how every *public-facing* consumer
+ * (the repo cards and "Latest Commits" list on the GitHub Activity page)
+ * knows to leave it out — see `syncGithubActivity` in `lib/github/sync.ts`
+ * for where that filtering actually happens. */
 export async function fetchRepoMetadata(owner: string, repo: string): Promise<RepoMetadataResult> {
   const res = await fetch(`${GITHUB_REST_BASE}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`, {
     headers: { ...authHeaders(), Accept: "application/vnd.github+json" },
@@ -177,10 +186,6 @@ export async function fetchRepoMetadata(owner: string, repo: string): Promise<Re
     private: boolean;
   };
 
-  if (json.private) {
-    throw new GithubApiError(`Repo ${owner}/${repo} is private — skipping (public widget shows public work only)`);
-  }
-
   return {
     name: json.name,
     description: json.description,
@@ -194,8 +199,18 @@ export async function fetchRepoMetadata(owner: string, repo: string): Promise<Re
 }
 
 /** Fetches the most recent commits on a repo's default branch, newest
- * first. `limit` caps the REST `per_page` query param. */
-export async function fetchLatestCommits(owner: string, repo: string, limit: number): Promise<CommitSummary[]> {
+ * first. `limit` caps the REST `per_page` query param.
+ *
+ * Returns commits without the `isPrivate` flag `CommitSummary` otherwise
+ * requires — this function has no way to know that on its own (it never
+ * fetches repo metadata), so `syncGithubActivity` in `lib/github/sync.ts`
+ * is what actually stamps each commit with it, from the metadata fetch
+ * it does for the same repo right alongside this call. */
+export async function fetchLatestCommits(
+  owner: string,
+  repo: string,
+  limit: number
+): Promise<Array<Omit<CommitSummary, "isPrivate">>> {
   const res = await fetch(
     `${GITHUB_REST_BASE}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commits?per_page=${limit}`,
     { headers: { ...authHeaders(), Accept: "application/vnd.github+json" } }

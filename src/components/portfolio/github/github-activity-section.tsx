@@ -36,7 +36,11 @@ const LATEST_COMMITS_SHOWN = 3;
 export function GithubActivitySection({ config, cache }: { config: GithubConfig; cache: GithubCache }) {
   const hasAnyError = cache.lastSyncErrors.length > 0;
   const isStale = isCacheStale(cache.lastSyncedAt);
-  const latestCommits = cache.commits.slice(0, LATEST_COMMITS_SHOWN);
+  // `cache.commits` can now include commits from a private repo (synced
+  // specifically for the "Now" page — see lib/github/sync.ts) — this is
+  // the public GitHub Activity page, so those are filtered out before
+  // slicing to the count actually shown.
+  const latestCommits = cache.commits.filter((commit) => !commit.isPrivate).slice(0, LATEST_COMMITS_SHOWN);
 
   return (
     <div className="space-y-12">

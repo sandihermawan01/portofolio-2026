@@ -50,6 +50,14 @@ export interface CommitSummary {
   message: string;
   url: string;
   committedAt: string;
+  /** True when this commit's repo is private. The cache still stores
+   * these commits (the "Now" page needs them, filtered by repoFullName,
+   * for whichever repo the currently-featured project points at) —
+   * they're just excluded from anything meant to be public, like the
+   * GitHub Activity page's own "Latest Commits" list and its repo cards.
+   * See the comment on `fetchRepoMetadata` in lib/github/client.ts for
+   * why private repos are allowed into the cache at all now. */
+  isPrivate: boolean;
 }
 
 /** Firestore doc `github/cache` — machine-written only (sync job / webhook

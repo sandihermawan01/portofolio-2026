@@ -31,10 +31,25 @@ export function NowGalleryCarousel({ images, alt }: { images: string[]; alt: str
     return () => window.clearInterval(id);
   }, [images.length]);
 
-  if (images.length === 0) return null;
+  // Previously `return null` here when there were no images at all (no
+  // gallery, no cover) — which left this entire grid column with nothing
+  // in it. An empty grid cell has no intrinsic size, so it collapsed:
+  // the card ended up looking like just the left text column with a
+  // random gap where the carousel should be, and that empty gap plainly
+  // can't be clicked even though it's still technically inside the
+  // outer <Link>. Rendering a same-sized placeholder box instead keeps
+  // the two-column card looking and behaving like one solid block
+  // regardless of whether the project has screenshots yet.
+  if (images.length === 0) {
+    return (
+      <div className="flex h-full min-h-[320px] w-full items-center justify-center border-l border-border bg-muted" aria-hidden="true">
+        <p className="index-label text-muted-foreground">Belum ada screenshot</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="relative aspect-video w-full overflow-hidden bg-muted" aria-hidden="true">
+    <div className="relative h-full min-h-[320px] w-full overflow-hidden border-l border-border bg-muted" aria-hidden="true">
       {images.map((src, i) => (
         <Image
           key={src}

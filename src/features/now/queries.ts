@@ -15,9 +15,18 @@ import type { CommitSummary } from "@/types/github";
 const NOW_COMMITS_LIMIT = 5;
 
 export interface NowData {
-  project: Project;
-  /** Empty when the project has no `repositoryUrl`, the URL isn't a
-   * recognizable github.com repo link, or nothing's been synced for it
+  /** The featured project with the lowest `sortOrder` — the one the
+   * carousel and commit list are actually about. */
+  activeProject: Project;
+  /** Any *other* featured projects, same ordering (lowest `sortOrder`
+   * first) minus `activeProject` itself — rendered as a plain list
+   * below the active project's card, same idea as the reference
+   * layout's further Notice rows below its highlighted top story. Empty
+   * when there's only the one featured project, which is the common
+   * case and renders fine with nothing extra below the card. */
+  otherProjects: Project[];
+  /** Empty when the active project has no `repositoryUrl`, the URL isn't
+   * a recognizable github.com repo link, or nothing's been synced for it
    * yet — never null, so the page can treat "no commits to show" as one
    * plain empty state regardless of which of those it is. */
   commits: CommitSummary[];
@@ -26,33 +35,32 @@ export interface NowData {
 /**
  * The "Now" page has no content of its own to maintain anymore — no
  * separate admin form, no Firestore doc to edit. It's entirely derived
- * from whichever published project is marked Featured / pinned (the
- * existing switch on the Project form), plus that project's own recent
- * commits straight from the GitHub sync cache. Returns null when nothing
- * is currently featured, so the page can show an honest "belum ada
- * project yang di-pin" empty state instead of silently pretending
- * there's always something in progress.
+ * from whichever published projects are marked Featured / pinned (the
+ * existing switch on the Project form). Returns null when nothing is
+ * currently featured, so the page can show an honest "belum ada project
+ * yang di-pin" empty state instead of silently pretending there's always
+ * something in progress.
  *
- * `getPublishedProjects()` already sorts featured projects first (then by
- * `sortOrder`, then newest first) — so if the admin ever marks more than
- * one project as featured, this just surfaces whichever one of those
- * would appear first in that order, not a merged "all of them" view. The
- * redesign brief only ever describes a single "what I'm doing right now"
- * slot, not a list.
+ * More than one project can be featured at once: `getPublishedProjects()`
+ * already sorts featured projects first, by `sortOrder` ascending (ties
+ * broken by newest first) — the one with the *lowest* `sortOrder` is
+ * `activeProject` (its gallery feeds the carousel, its repo's commits are
+ * what's listed), and any further featured projects come back as
+ * `otherProjects` in that same order, for the plain list rows underneath.
  */
 export async function getNowData(): Promise<NowData | null> {
   const projects = await getPublishedProjects();
-  const project = projects.find((p) => p.featured);
-  if (!project) return null;
+  const [activeProject, ...otherProjects] = projects.filter((p) => p.featured);
+  if (!activeProject) return null;
 
-  const repoFullName = parseGithubRepoFullName(project.repositoryUrl);
+  const repoFullName = parseGithubRepoFullName(activeProject.repositoryUrl);
   let commits: CommitSummary[] = [];
   if (repoFullName) {
     const cache = await getGithubCache();
     commits = cache.commits.filter((commit) => commit.repoFullName === repoFullName).slice(0, NOW_COMMITS_LIMIT);
   }
 
-  return { project, commits };
+  return { activeProject, otherProjects, commits };
 }
 
 /** "https://github.com/owner/repo(.git)?(/)?" -> "owner/repo", matching

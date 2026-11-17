@@ -88,21 +88,37 @@ export async function syncGithubActivity(): Promise<SyncResult> {
     let anyCommitsSucceeded = false;
 
     for (const sel of selectedRepos) {
+      // Whether to hide this repo's commits from every *public* consumer
+      // (the GitHub Activity page's repo cards and its "Latest Commits"
+      // list). Defaults to hidden: if the metadata fetch below fails for
+      // any reason, we don't actually know whether the repo is private,
+      // and treating an unknown as public would risk leaking a private
+      // repo's existence/commits the moment metadata fetching has a
+      // transient hiccup. Only a *successful* fetch that confirms
+      // `isPrivate: false` clears this.
+      let isPrivate = true;
+
       try {
         const meta = await fetchRepoMetadata(sel.owner, sel.repo);
-        repoResults.push({
-          owner: sel.owner,
-          repo: sel.repo,
-          status: sel.status,
-          sortOrder: sel.sortOrder,
-          name: meta.name,
-          description: meta.description,
-          language: meta.language,
-          topics: meta.topics,
-          url: meta.url,
-          updatedAt: meta.updatedAt,
-          pushedAt: meta.pushedAt,
-        });
+        isPrivate = meta.isPrivate;
+        if (!meta.isPrivate) {
+          repoResults.push({
+            owner: sel.owner,
+            repo: sel.repo,
+            status: sel.status,
+            sortOrder: sel.sortOrder,
+            name: meta.name,
+            description: meta.description,
+            language: meta.language,
+            topics: meta.topics,
+            url: meta.url,
+            updatedAt: meta.updatedAt,
+            pushedAt: meta.pushedAt,
+          });
+        }
+        // A successful fetch is what lets `update.repos` below correctly
+        // reflect "this repo is private, so it's not in the public list"
+        // — not just "this repo has a public card".
         anyRepoSucceeded = true;
       } catch (e) {
         errors.push(describeError(`Repo ${sel.owner}/${sel.repo}`, e));
@@ -110,7 +126,7 @@ export async function syncGithubActivity(): Promise<SyncResult> {
 
       try {
         const commits = await fetchLatestCommits(sel.owner, sel.repo, COMMITS_PER_REPO_FETCH);
-        allCommits.push(...commits);
+        allCommits.push(...commits.map((c) => ({ ...c, isPrivate })));
         anyCommitsSucceeded = true;
       } catch (e) {
         errors.push(describeError(`Commits for ${sel.owner}/${sel.repo}`, e));
