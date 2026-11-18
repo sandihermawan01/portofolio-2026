@@ -311,7 +311,20 @@ export function DeveloperHero({ name, role, skills = [] }: { name: string; role:
         ref={contentRef}
         className="container-editorial pointer-events-none relative flex h-full flex-col justify-center transition-transform duration-300 ease-out motion-reduce:!transform-none"
       >
-        <p className="index-label motion-safe:animate-fade-in mb-4 flex items-center gap-2">
+        {/* The index-label/live-dot row is the hero's "header"; everything
+            from here down is its "body". It used to all just be present at
+            once (a typewriter headline that plays once, then a fully inert
+            block of text) — now each line steps in on its own beat
+            (`fade-in-up`'s built-in `both` fill mode holds the pre-animation
+            state, so a plain `animationDelay` is enough to stagger them,
+            no extra opacity classes needed) before the typewriter and the
+            parallax tilt take over, so the whole body reads as one
+            continuous entrance rather than a static poster that happens to
+            type itself out. */}
+        <p
+          className="index-label motion-safe:animate-fade-in-up mb-4 flex items-center gap-2"
+          style={{ animationDelay: "60ms" }}
+        >
           {/* Small "live" status dot — a steady center with a ring that
               expands and fades on loop (Tailwind's built-in `animate-ping`),
               like a terminal's "system active" indicator. Reinforces that
@@ -323,11 +336,17 @@ export function DeveloperHero({ name, role, skills = [] }: { name: string; role:
           INDEX — 00 / HOME
         </p>
 
-        <p className="motion-safe:animate-fade-in font-mono text-base text-muted-foreground sm:text-lg">
+        <p
+          className="motion-safe:animate-fade-in-up font-mono text-base text-muted-foreground sm:text-lg"
+          style={{ animationDelay: "160ms" }}
+        >
           {name || "Nama belum diisi"} <span className="text-foreground">/</span> {role || "Role belum diisi"}
         </p>
 
-        <h1 className="mt-4 max-w-4xl font-display text-4xl font-semibold leading-tight tracking-tight sm:text-6xl lg:text-7xl">
+        <h1
+          className="motion-safe:animate-fade-in-up mt-4 max-w-4xl font-display text-4xl font-semibold leading-tight tracking-tight sm:text-6xl lg:text-7xl"
+          style={{ animationDelay: "260ms" }}
+        >
           {typedTagline}
           {!doneTyping && <span className="motion-safe:animate-blink">_</span>}
         </h1>
@@ -337,7 +356,12 @@ export function DeveloperHero({ name, role, skills = [] }: { name: string; role:
             doneTyping ? "motion-safe:animate-fade-in-up opacity-100" : "opacity-0 motion-reduce:opacity-100"
           }`}
         >
-          <Button asChild>
+          {/* `hover:-translate-y-0.5` on top of the variant's own
+              `hover:opacity-90` — a small lift instead of just a dimmer
+              fill, so the primary CTA picks up the same "something moved"
+              feedback the secondary button already gets from
+              `.brutalist-hover`'s shadow-offset lift. */}
+          <Button asChild className="transition-transform duration-150 ease-out hover:-translate-y-0.5">
             <Link href="/project">Lihat Project</Link>
           </Button>
           {/* Not `variant="outline"` — that variant's own `hover:bg-accent`

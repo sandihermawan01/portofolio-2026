@@ -10,7 +10,19 @@
  */
 export function HamburgerIcon({ open }: { open: boolean }) {
   return (
-    <span className="relative flex h-4 w-4 flex-col items-center justify-center" aria-hidden="true">
+    // `pointer-events-none` — `Button`'s own styles give every `<svg>`
+    // child this same treatment (`[&_svg]:pointer-events-none`) so a
+    // click anywhere on an icon always resolves to the button itself,
+    // never one of the icon's internal shapes. This is a `<span>`-based
+    // icon, not an `<svg>`, so it falls outside that rule and needs it
+    // explicitly — without it, a click landing exactly on one of the
+    // bars below targets *that bar*, not the button, which is enough to
+    // confuse Radix's trigger-vs-outside-click detection on the Sheet
+    // this opens and made it flicker open then immediately closed.
+    <span
+      className="pointer-events-none relative flex h-4 w-4 flex-col items-center justify-center"
+      aria-hidden="true"
+    >
       <span
         className={`absolute h-[1.5px] w-4 bg-current transition-transform duration-300 ease-out motion-reduce:transition-none ${
           open ? "translate-y-0 rotate-45" : "-translate-y-[5px] rotate-0"

@@ -71,11 +71,12 @@ export function NowPanel({ projects, children }: { projects: Project[]; children
         href={`/project/${openProject.slug}`}
         className="block transition-[filter] duration-200 hover:brightness-95"
       >
-        {/* `key` forces a remount per project so the carousel's own
-            auto-advance index resets to 0 and its cross-fade starts
-            clean, instead of carrying over a stale index/opacity state
-            from whichever project was showing before. */}
-        <NowGalleryCarousel key={openProject.id} images={images} alt={openProject.title} />
+        {/* `resetKey` (not a `key` prop) — the carousel stays mounted
+            across hover changes and just resets its own index internally
+            when the project id changes. See the comment in
+            `now-gallery-carousel.tsx` for why a full remount here was
+            the actual cause of the zoom/shake-on-hover feeling. */}
+        <NowGalleryCarousel resetKey={openProject.id} images={images} alt={openProject.title} />
       </Link>
     </div>
   );

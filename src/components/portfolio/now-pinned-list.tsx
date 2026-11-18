@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import type { Project } from "@/types/content";
 import { formatDateTime } from "@/lib/utils";
@@ -28,8 +29,61 @@ export function NowPinnedList({
   openIndex: number;
   onHoverChange: (index: number | null) => void;
 }) {
+  // At any instant, exactly one row is "open" and the rest are "closed",
+  // so the list's total height is the same constant whichever row that
+  // happens to be — but only once each transition has *settled*.
+  // Mid-transition, the growing row and the shrinking row each animate
+  // several properties of their own (min-height, padding, margin-top, and
+  // the summary's own max-height) on their own clock, and those don't
+  // track each other closely enough to cancel out perfectly at every
+  // frame — so the list's rendered height would briefly bulge past this
+  // constant and snap back, and everything below it (Latest Commits, the
+  // footer nav) would visibly bob up and down along with it. Pinning the
+  // list to a fixed height makes that bulge invisible: whatever a row
+  // does internally mid-transition, the siblings below never move.
+  //
+  // That fixed height used to be a hand-measured pixel constant
+  // (open-row height + closed-row height × count + divider/border
+  // widths) — which looked right at the one viewport it was measured at,
+  // but was a few sub-pixels short of the real rendered height once line-
+  // height rounding, the root `18px` font-size scaling, and actual border
+  // widths were all accounted for, and `overflow-hidden` quietly clipped
+  // that shortfall off the bottom row instead of showing it. Measuring
+  // the list's own natural `scrollHeight` after mount — once, with no
+  // height constraint yet applied — sidesteps the guesswork entirely: the
+  // locked height is always exactly whatever the browser itself rendered,
+  // for whichever row happens to be open at that moment (any one of them
+  // is the same total, per the invariant above). Re-measured on resize
+  // too, since the row's internal layout (summary stacks under the title
+  // on narrow screens, inline beside it on `sm:` and up) changes the
+  // natural height across that breakpoint.
+  const listRef = React.useRef<HTMLOListElement>(null);
+  const [lockedHeight, setLockedHeight] = React.useState<number | null>(null);
+
+  React.useLayoutEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+
+    function measure() {
+      if (!el) return;
+      // `scrollHeight` reports the element's full content extent even
+      // while `overflow-hidden` + an explicit `height` are already
+      // active from a previous measurement, so this is safe to call
+      // again on resize without first having to unlock the height.
+      setLockedHeight(el.scrollHeight);
+    }
+
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [projects.length]);
+
   return (
-    <ol className="divide-y divide-border border border-border">
+    <ol
+      ref={listRef}
+      className="divide-y divide-border overflow-hidden border border-border"
+      style={lockedHeight !== null ? { height: `${lockedHeight}px` } : undefined}
+    >
       {projects.map((project, index) => {
         const isOpen = index === openIndex;
         return (

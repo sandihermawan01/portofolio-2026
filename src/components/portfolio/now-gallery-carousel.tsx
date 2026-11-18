@@ -16,9 +16,34 @@ const FADE_MS = 500;
  *
  * Respects `prefers-reduced-motion`: the interval is simply never
  * started, so it quietly holds on the first image instead of looping.
+ *
+ * `resetKey` (the hovered project's id) resets the index back to 0 when
+ * the caller switches which project's gallery is showing. This used to
+ * be done by the caller putting `key={openProject.id}` on this component
+ * instead, which *fully unmounts and remounts* the whole carousel — box
+ * and all — on every single hover change. Next/Image's `fill` layout has
+ * to re-settle into its container from scratch right after a remount,
+ * and doing that repeatedly, every time the cursor crossed into a new
+ * pinned row, was exactly what read as "zooming and shaking": the box
+ * popping/resizing itself on every hover instead of the image just
+ * quietly cross-fading in place. Resetting the index in an effect keeps
+ * this component (and its box) mounted the whole time the panel is
+ * open — only the `<Image>`s inside actually change.
  */
-export function NowGalleryCarousel({ images, alt }: { images: string[]; alt: string }) {
+export function NowGalleryCarousel({
+  images,
+  alt,
+  resetKey,
+}: {
+  images: string[];
+  alt: string;
+  resetKey: string;
+}) {
   const [index, setIndex] = React.useState(0);
+
+  React.useEffect(() => {
+    setIndex(0);
+  }, [resetKey]);
 
   React.useEffect(() => {
     if (images.length <= 1) return;

@@ -41,6 +41,18 @@ export function Navbar({ ownerName, showGithubLink = false }: { ownerName: strin
   const pathname = usePathname();
   const [open, setOpen] = React.useState(false);
 
+  // `SheetClose` (Radix `Dialog.Close`) normally closes the sheet when its
+  // click fires — but `PixelTransitionOverlay` intercepts every internal
+  // link click at the `window` capture phase (so it can drive the page
+  // transition itself) and calls `stopPropagation()`, which stops that
+  // click from ever reaching the Link/SheetClose here at all. Navigation
+  // still happens (that overlay calls `router.push` itself), just not the
+  // sheet's own close-on-click. Closing it here instead, whenever the
+  // route actually changes, doesn't depend on that click ever arriving.
+  React.useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
   const NAV_ITEMS = showGithubLink
     ? [...BASE_NAV_ITEMS.slice(0, 4), { href: "/github", label: "GitHub" }, ...BASE_NAV_ITEMS.slice(4)]
     : BASE_NAV_ITEMS;
