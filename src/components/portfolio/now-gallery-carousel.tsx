@@ -17,33 +17,45 @@ const FADE_MS = 500;
  * Respects `prefers-reduced-motion`: the interval is simply never
  * started, so it quietly holds on the first image instead of looping.
  *
- * `resetKey` (the hovered project's id) resets the index back to 0 when
- * the caller switches which project's gallery is showing. This used to
- * be done by the caller putting `key={openProject.id}` on this component
- * instead, which *fully unmounts and remounts* the whole carousel — box
- * and all — on every single hover change. Next/Image's `fill` layout has
- * to re-settle into its container from scratch right after a remount,
- * and doing that repeatedly, every time the cursor crossed into a new
- * pinned row, was exactly what read as "zooming and shaking": the box
- * popping/resizing itself on every hover instead of the image just
- * quietly cross-fading in place. Resetting the index in an effect keeps
- * this component (and its box) mounted the whole time the panel is
- * open — only the `<Image>`s inside actually change.
+ * `NowPanel` now keeps one of these mounted *per pinned project* all the
+ * time — stacked on top of each other, with only the currently-open one
+ * visible (see the comment there) — rather than swapping a single
+ * instance's `images` prop in and out as the hover target changes. That
+ * used to mean every project's screenshots only started loading the
+ * first time its row was hovered, so switching to a project whose image
+ * hadn't been requested yet showed a brief blank/loading flash before it
+ * popped in — the "nyendat-nyendat" stutter. With every project's
+ * carousel mounted from the start, every image begins loading on initial
+ * page load instead, so by the time the cursor actually reaches a row
+ * its screenshot is already sitting in the browser cache.
+ *
+ * `active` switches this root box between taking up normal document flow
+ * (the one currently-open project) and sitting absolutely positioned,
+ * invisible and unclickable, exactly on top of it (every other project,
+ * still loading in the background). This has to live on this
+ * component's *own* root div rather than on an extra wrapping `<div>`
+ * around it in `NowPanel` — that was tried first, and it broke the
+ * carousel entirely: `md:h-full` here only means anything relative to a
+ * parent with a *definite* height, which is this component's direct
+ * parent (the `Link` in `NowPanel`, stretched by CSS Grid). An extra
+ * wrapping div in between has no height of its own (plain `position:
+ * relative`/`absolute` don't imply one), so `height: 100%` against it
+ * resolves to nothing per the CSS spec, and the carousel collapsed to
+ * zero height on desktop — exactly the "carousel disappeared"
+ * regression. Putting `active`'s positioning classes directly on this
+ * root div keeps it the *immediate* child of that stretched `Link`, so
+ * `md:h-full` still has something real to measure against.
  */
 export function NowGalleryCarousel({
   images,
   alt,
-  resetKey,
+  active,
 }: {
   images: string[];
   alt: string;
-  resetKey: string;
+  active: boolean;
 }) {
   const [index, setIndex] = React.useState(0);
-
-  React.useEffect(() => {
-    setIndex(0);
-  }, [resetKey]);
 
   React.useEffect(() => {
     if (images.length <= 1) return;
@@ -74,10 +86,18 @@ export function NowGalleryCarousel({
   // the two-column layout kicks in and this needs to match the list's
   // height. Same story for the border: a left rule only makes sense
   // once this sits beside the list, not above/below it.
+  // `active`'s own classes come first so they can be overridden by the
+  // shared sizing/border classes below where they don't conflict (e.g.
+  // both set `relative`/`position`, and the shared string wins since it
+  // comes later in the string — intentional, `active` only needs to
+  // contribute the *non*-active case's `absolute inset-0 opacity-0
+  // pointer-events-none`, which nothing else here sets).
+  const positionClassName = active ? "relative" : "absolute inset-0 opacity-0 pointer-events-none";
+
   if (images.length === 0) {
     return (
       <div
-        className="flex aspect-video w-full items-center justify-center border-t border-border bg-muted md:aspect-auto md:h-full md:border-l md:border-t-0"
+        className={`flex aspect-video w-full items-center justify-center border-t border-border bg-muted md:aspect-auto md:h-full md:border-l md:border-t-0 ${positionClassName}`}
         aria-hidden="true"
       >
         <p className="index-label text-muted-foreground">Belum ada screenshot</p>
@@ -87,7 +107,7 @@ export function NowGalleryCarousel({
 
   return (
     <div
-      className="relative aspect-video w-full overflow-hidden border-t border-border bg-muted md:aspect-auto md:h-full md:border-l md:border-t-0"
+      className={`aspect-video w-full overflow-hidden border-t border-border bg-muted md:aspect-auto md:h-full md:border-l md:border-t-0 ${positionClassName}`}
       aria-hidden="true"
     >
       {/* `object-contain`, not `object-cover` — these are real project
