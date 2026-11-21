@@ -95,7 +95,7 @@ export function GithubActivitySection({ config, cache }: { config: GithubConfig;
             <EmptyState title="Belum ada repository dipilih" description="Pemilik website belum memilih repository untuk ditampilkan." />
           </div>
         ) : (
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4">
             {cache.repos.map((repo, i) => (
               <Link
                 key={`${repo.owner}/${repo.repo}`}
@@ -104,21 +104,31 @@ export function GithubActivitySection({ config, cache }: { config: GithubConfig;
                 rel="noopener noreferrer"
                 style={{ animationDelay: `${150 + i * 60}ms` }}
                 className={cn(
-                  "group block border border-border p-7",
+                  "group block border border-border p-3 sm:p-7",
                   "motion-safe:animate-fade-in-up motion-safe:opacity-0",
                   "transition-all duration-200 ease-out hover:-translate-y-1 hover:border-foreground hover:bg-accent hover:shadow-[4px_4px_0_0_hsl(var(--foreground))]"
                 )}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <p className="font-mono text-xs text-muted-foreground">
+                  <p className="min-w-0 truncate font-mono text-xs text-muted-foreground">
                     {repo.owner}/{repo.name}
                   </p>
-                  <Badge variant="outline">{STATUS_LABEL[repo.status] ?? repo.status}</Badge>
+                  <Badge variant="outline" className="shrink-0">
+                    {STATUS_LABEL[repo.status] ?? repo.status}
+                  </Badge>
                 </div>
-                {repo.description && <p className="mt-2 text-sm text-muted-foreground">{repo.description}</p>}
-                {repo.language && <p className="mt-3 font-mono text-xs text-muted-foreground">{repo.language}</p>}
+                {/* Description + topics still dropped on mobile, but
+                    language gets its own (short) line back — it was
+                    getting truncated away when squeezed onto the name
+                    line. */}
+                {repo.description && (
+                  <p className="mt-2 hidden text-sm text-muted-foreground sm:block">{repo.description}</p>
+                )}
+                {repo.language && (
+                  <p className="mt-1 font-mono text-xs text-muted-foreground sm:mt-3">{repo.language}</p>
+                )}
                 {repo.topics.length > 0 && (
-                  <ul className="mt-3 flex flex-wrap gap-2">
+                  <ul className="mt-3 hidden flex-wrap gap-2 sm:flex">
                     {repo.topics.slice(0, 6).map((topic) => (
                       <li key={topic}>
                         <Badge variant="outline">{topic}</Badge>

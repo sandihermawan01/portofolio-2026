@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
 import { DeveloperHero } from "@/components/portfolio/developer-hero";
@@ -199,17 +200,37 @@ export default async function HomePage() {
               />
             ) : (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {featured.map((project, i) => (
-                  <ScrollReveal key={project.id} delayMs={i * 100}>
-                    <Link href={`/project/${project.slug}`} className="brutalist-hover group block p-7">
-                      <p className="font-mono text-sm text-muted-foreground">{String(i + 1).padStart(2, "0")}</p>
-                      <h3 className="mt-2 font-display text-2xl font-medium group-hover:underline">
-                        {project.title}
-                      </h3>
-                      <p className="mt-2 line-clamp-2 text-base text-muted-foreground">{project.summary}</p>
-                    </Link>
-                  </ScrollReveal>
-                ))}
+                {featured.map((project, i) => {
+                  const previewImage = project.coverImageUrl || project.gallery[0];
+                  return (
+                    <ScrollReveal key={project.id} delayMs={i * 100}>
+                      <Link href={`/project/${project.slug}`} className="brutalist-hover group block">
+                        <div className="relative aspect-video w-full overflow-hidden border border-border bg-muted">
+                          {previewImage ? (
+                            <Image
+                              src={previewImage}
+                              alt={project.title}
+                              fill
+                              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                              className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center font-mono text-xs text-muted-foreground">
+                              No preview
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-7">
+                          <p className="font-mono text-sm text-muted-foreground">{String(i + 1).padStart(2, "0")}</p>
+                          <h3 className="mt-2 font-display text-2xl font-medium group-hover:underline">
+                            {project.title}
+                          </h3>
+                          <p className="mt-2 line-clamp-2 text-base text-muted-foreground">{project.summary}</p>
+                        </div>
+                      </Link>
+                    </ScrollReveal>
+                  );
+                })}
               </div>
             )}
           </section>
