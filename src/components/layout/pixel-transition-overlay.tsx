@@ -3,7 +3,11 @@
 import * as React from "react";
 import { useRouter, usePathname } from "next/navigation";
 
-type StartViewTransitionFn = (callback: () => Promise<void> | void) => void;
+interface ViewTransition {
+  ready: Promise<void>;
+  finished: Promise<void>;
+}
+type StartViewTransitionFn = (callback: () => Promise<void> | void) => ViewTransition;
 
 const VIEW_TRANSITION_SAFETY_MS = 2500;
 function getStartViewTransition(doc: Document): StartViewTransitionFn | undefined {
@@ -64,7 +68,7 @@ export function PixelTransitionOverlay({ children }: { children: React.ReactNode
       event.stopPropagation();
 
       pendingHrefRef.current = href;
-      startViewTransition(() => {
+      const transition = startViewTransition(() => {
         return new Promise<void>((resolve) => {
           let settled = false;
           const settleOnce = () => {
@@ -84,6 +88,14 @@ export function PixelTransitionOverlay({ children }: { children: React.ReactNode
           window.setTimeout(settleOnce, VIEW_TRANSITION_SAFETY_MS);
         });
       });
+
+      // The browser can abort a transition on its own (e.g. viewport
+      // resize mid-flight, common on mobile from the keyboard or address
+      // bar) — the navigation already happened via router.push either
+      // way, so just swallow the rejection instead of letting it surface
+      // as an unhandled error.
+      transition.ready.catch(() => {});
+      transition.finished.catch(() => {});
     }
 
     window.addEventListener("click", onClick, { capture: true });
