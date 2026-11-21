@@ -154,7 +154,7 @@ export function RepoListEditor({
       </div>
       {atLimit && <p className="text-xs text-muted-foreground">Maksimal 12 repository dipilih.</p>}
       <p className="text-xs text-muted-foreground">
-        Repository diverifikasi langsung ke GitHub (harus publik) saat tombol Simpan ditekan.
+        Repository diverifikasi langsung ke GitHub saat tombol Simpan ditekan (private atau publik sama-sama bisa).
       </p>
     </div>
   );
