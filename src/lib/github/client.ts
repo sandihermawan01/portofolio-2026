@@ -43,9 +43,15 @@ function authHeaders(): Record<string, string> {
   };
 }
 
+// `viewer` (the token's own account), not `user(login:)` — querying by
+// login applies the same privacy rule as the public profile page (private
+// contributions only count if "Include private contributions" is turned
+// on in GitHub's own profile settings). `viewer` always includes them,
+// since it's "what did I actually do" rather than "what's on my public
+// profile" — no GitHub-side setting needed.
 const CONTRIBUTIONS_QUERY = `
-  query ($login: String!) {
-    user(login: $login) {
+  query {
+    viewer {
       contributionsCollection {
         contributionCalendar {
           totalContributions
@@ -73,7 +79,7 @@ export async function fetchContributionCalendar(username: string): Promise<Contr
       ...authHeaders(),
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ query: CONTRIBUTIONS_QUERY, variables: { login: username } }),
+    body: JSON.stringify({ query: CONTRIBUTIONS_QUERY }),
     // GraphQL responses here are small and change slowly; this function is
     // only ever called from the sync job, never from a request path a
     // visitor is waiting on, so no explicit cache directive is needed.
@@ -86,7 +92,7 @@ export async function fetchContributionCalendar(username: string): Promise<Contr
   const json = (await res.json()) as {
     errors?: Array<{ message: string }>;
     data?: {
-      user: {
+      viewer: {
         contributionsCollection: {
           contributionCalendar: {
             totalContributions: number;
@@ -100,11 +106,11 @@ export async function fetchContributionCalendar(username: string): Promise<Contr
   if (json.errors?.length) {
     throw new GithubApiError(`GitHub GraphQL error: ${json.errors[0]?.message ?? "unknown"}`);
   }
-  if (!json.data?.user) {
+  if (!json.data?.viewer) {
     throw new GithubApiError(`GitHub user "${username}" not found`);
   }
 
-  const calendar = json.data.user.contributionsCollection.contributionCalendar;
+  const calendar = json.data.viewer.contributionsCollection.contributionCalendar;
   const allCounts = calendar.weeks.flatMap((w) => w.contributionDays.map((d) => d.contributionCount));
   const level = levelBucketer(allCounts);
 
