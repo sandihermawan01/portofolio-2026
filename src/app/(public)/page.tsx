@@ -60,7 +60,7 @@ export default async function HomePage() {
       <DeveloperHero
         name={profile?.name || "Nama belum diisi"}
         role={profile?.role || "Role belum diisi"}
-        skills={profile?.skills}
+        skills={profile?.skills?.map((s) => s.name)}
       />
 
       <div className="container-editorial">
@@ -95,12 +95,12 @@ export default async function HomePage() {
               <ul className="flex flex-wrap gap-2">
                 {profile.skills.map((skill, i) => (
                   <li
-                    key={skill}
+                    key={skill.name}
                     className="motion-safe:animate-fade-in-up opacity-0"
                     style={{ animationDelay: `${i * 40}ms`, animationFillMode: "forwards" }}
                   >
                     <Badge variant="outline" className="transition-transform duration-150 hover:-translate-y-0.5">
-                      {skill}
+                      {skill.name}
                     </Badge>
                   </li>
                 ))}

@@ -1,9 +1,9 @@
 import Link from "next/link";
-import Image from "next/image";
 import type { Metadata } from "next";
 import { SectionHeading } from "@/components/portfolio/section-heading";
 import { EmptyState } from "@/components/portfolio/empty-state";
 import { Badge } from "@/components/ui/badge";
+import { PixelCursorImage } from "@/components/portfolio/pixel-cursor-image";
 import { getPublishedProjects } from "@/features/projects/queries";
 import { getGithubConfig } from "@/features/github/queries";
 
@@ -29,36 +29,43 @@ export default async function ProjectListPage() {
               <Link
                 key={project.id}
                 href={`/project/${project.slug}`}
-                className="group relative flex flex-col justify-between gap-6 overflow-hidden bg-background p-8 transition-colors hover:bg-accent"
+                className="group relative block min-h-[280px] overflow-hidden bg-background"
               >
-                {/* Background image, not a separate block — grayscale and
-                    invisible at rest, fading up to a low max opacity on
-                    hover so it never competes with the text on top. */}
+                {/* image slides in from the right on hover */}
                 {previewImage && (
-                  <Image
-                    src={previewImage}
-                    alt=""
-                    fill
-                    sizes="(min-width: 640px) 50vw, 100vw"
-                    className="object-cover opacity-0 grayscale transition-opacity duration-700 ease-out group-hover:opacity-15"
-                  />
+                  <div className="absolute inset-0 translate-x-[110%] transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-0">
+                    <PixelCursorImage src={previewImage} alt={project.title} />
+                  </div>
                 )}
-                <div className="relative">
+
+                {/* default content: slides out left + fades as the image comes in */}
+                <div className="relative z-10 flex h-full min-h-[280px] flex-col justify-between gap-6 p-8 transition-all duration-500 ease-out group-hover:-translate-x-8 group-hover:opacity-0 group-hover:pointer-events-none">
                   <div className="flex items-center justify-between">
                     <p className="font-mono text-xs text-muted-foreground">{String(i + 1).padStart(2, "0")}</p>
                     {project.featured && <Badge variant="solid">Featured</Badge>}
                   </div>
-                  <h2 className="mt-3 font-display text-xl font-medium group-hover:underline">{project.title}</h2>
-                  <p className="mt-2 text-sm text-muted-foreground">{project.summary}</p>
+                  <div>
+                    <h2 className="font-display text-xl font-medium">{project.title}</h2>
+                    <p className="mt-2 text-sm text-muted-foreground">{project.summary}</p>
+                  </div>
+                  {project.technologies.length > 0 && (
+                    <ul className="flex flex-wrap gap-2">
+                      {project.technologies.slice(0, 5).map((tech) => (
+                        <li key={tech}>
+                          <Badge variant="outline">{tech}</Badge>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-                {project.technologies.length > 0 && (
-                  <ul className="relative flex flex-wrap gap-2">
-                    {project.technologies.slice(0, 5).map((tech) => (
-                      <li key={tech}>
-                        <Badge variant="outline">{tech}</Badge>
-                      </li>
-                    ))}
-                  </ul>
+
+                {/* title reappears tucked in the corner once the image has settled */}
+                {previewImage && (
+                  <div className="pointer-events-none absolute inset-0 z-20 flex items-end p-5">
+                    <span className="w-fit max-w-[80%] translate-y-3 scale-95 rounded-sm border border-border bg-background/85 px-3 py-1.5 font-display text-lg font-medium opacity-0 backdrop-blur-sm transition-all delay-500 duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100">
+                      {project.title}
+                    </span>
+                  </div>
                 )}
               </Link>
             );

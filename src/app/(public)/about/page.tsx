@@ -4,9 +4,10 @@ import type { Metadata } from "next";
 import { SectionHeading } from "@/components/portfolio/section-heading";
 import { EmptyState } from "@/components/portfolio/empty-state";
 import { ParallaxBanner } from "@/components/portfolio/parallax-banner";
-import { Badge } from "@/components/ui/badge";
+import { TechStackPie } from "@/components/portfolio/tech-stack-pie";
 import { cn } from "@/lib/utils";
 import { getProfile } from "@/features/about/queries";
+import { withSkillShares } from "@/lib/skills";
 
 export const metadata: Metadata = {
   title: "About",
@@ -25,6 +26,8 @@ export default async function AboutPage() {
     );
   }
 
+  const skillsWithShare = withSkillShares(profile.skills);
+
   return (
     <div className="pb-16">
       <ParallaxBanner index="01 / ABOUT" title={profile.name} subtitle={profile.role} imageUrl={profile.avatarUrl} />
@@ -34,13 +37,32 @@ export default async function AboutPage() {
           {profile.location && <p className="font-mono text-xs text-muted-foreground">{profile.location}</p>}
           <p className={cn("whitespace-pre-line leading-relaxed", profile.location ? "mt-4" : "")}>{profile.bio}</p>
 
-          {profile.skills.length > 0 && (
+          {profile.stats.length > 0 && (
+            <div className="mt-10 grid grid-cols-2 gap-6 sm:grid-cols-3">
+              {profile.stats.map((stat) => (
+                <div key={stat.label}>
+                  <p className="font-display text-3xl font-medium">{stat.value}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {skillsWithShare.length > 0 && (
             <div className="mt-10">
-              <h3 className="index-label mb-3">SKILLS</h3>
-              <ul className="flex flex-wrap gap-2">
-                {profile.skills.map((skill) => (
-                  <li key={skill}>
-                    <Badge variant="outline">{skill}</Badge>
+              <h3 className="index-label mb-3">TECH STACK</h3>
+              <TechStackPie skills={skillsWithShare} />
+            </div>
+          )}
+
+          {profile.facts.length > 0 && (
+            <div className="mt-10">
+              <h3 className="index-label mb-3">RANDOM FACTS</h3>
+              <ul className="space-y-2">
+                {profile.facts.map((fact) => (
+                  <li key={fact} className="flex gap-2 text-sm text-muted-foreground">
+                    <span aria-hidden="true">—</span>
+                    {fact}
                   </li>
                 ))}
               </ul>
