@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Upload, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024;
 const ACCEPTED = "image/png,image/jpeg,image/webp,image/avif";
 
 /**
@@ -32,7 +32,7 @@ export function ImageUploadField({
 
   async function handleFile(file: File) {
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      toast.error("Ukuran file harus di bawah 5MB.");
+      toast.error("Ukuran file harus di bawah 2MB.");
       return;
     }
 
@@ -91,7 +91,7 @@ export function ImageUploadField({
           }}
         />
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">PNG, JPEG, WebP, atau AVIF. Maksimal 5MB.</p>
+      <p className="mt-1 text-xs text-muted-foreground">PNG, JPEG, WebP, atau AVIF. Maksimal 2MB.</p>
     </div>
   );
 }

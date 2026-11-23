@@ -5,6 +5,7 @@ import { SectionHeading } from "@/components/portfolio/section-heading";
 import { EmptyState } from "@/components/portfolio/empty-state";
 import { ParallaxBanner } from "@/components/portfolio/parallax-banner";
 import { TechStackPie } from "@/components/portfolio/tech-stack-pie";
+import { SkillBarsChart } from "@/components/portfolio/skill-bars-chart";
 import { cn } from "@/lib/utils";
 import { getProfile } from "@/features/about/queries";
 import { withSkillShares } from "@/lib/skills";
@@ -55,20 +56,6 @@ export default async function AboutPage() {
             </div>
           )}
 
-          {profile.facts.length > 0 && (
-            <div className="mt-10">
-              <h3 className="index-label mb-3">RANDOM FACTS</h3>
-              <ul className="space-y-2">
-                {profile.facts.map((fact) => (
-                  <li key={fact} className="flex gap-2 text-sm text-muted-foreground">
-                    <span aria-hidden="true">—</span>
-                    {fact}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
           {profile.socialLinks.length > 0 && (
             <div className="mt-10">
               <h3 className="index-label mb-3">SOCIAL</h3>
@@ -96,6 +83,13 @@ export default async function AboutPage() {
           </div>
         )}
       </div>
+
+      {profile.skillBars.length > 0 && (
+        <div className="container-editorial mt-10">
+          <h3 className="index-label mb-6">MY SKILLS</h3>
+          <SkillBarsChart skills={profile.skillBars} />
+        </div>
+      )}
     </div>
   );
 }

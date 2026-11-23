@@ -30,7 +30,7 @@ import { getServerEnv } from "@/config/env";
  */
 
 const ALLOWED_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/avif"]);
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB — keep in sync with image-upload-field.tsx and next.config.ts's bodySizeLimit
 
 export class InvalidUploadError extends Error {}
 
@@ -61,7 +61,7 @@ export async function uploadImage(file: File, folder: "avatars" | "projects"): P
   }
 
   if (file.size <= 0 || file.size > MAX_FILE_SIZE_BYTES) {
-    throw new InvalidUploadError("Ukuran file harus di bawah 5MB");
+    throw new InvalidUploadError("Ukuran file harus di bawah 2MB");
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());

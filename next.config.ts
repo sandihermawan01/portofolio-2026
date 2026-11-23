@@ -55,6 +55,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    serverActions: {
+      // Image uploads go through Server Actions as multipart/base64, which
+      // inflates the original file size by ~33% — so this must sit above
+      // the 2MB client-side cap (see image-upload-field.tsx), not equal to it.
+      bodySizeLimit: "3mb",
+    },
+  },
   async headers() {
     return [
       {

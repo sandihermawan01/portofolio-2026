@@ -11,9 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { TagInput } from "@/components/admin/tag-input";
 import { SkillLevelEditor } from "@/components/admin/skill-level-editor";
 import { StatsEditor } from "@/components/admin/stats-editor";
+import { SkillBarsEditor } from "@/components/admin/skill-bars-editor";
 import { SocialLinksEditor } from "@/components/admin/social-links-editor";
 import { ImageUploadField } from "@/components/admin/image-upload-field";
 import type { Profile } from "@/types/content";
@@ -33,7 +33,7 @@ export function ProfileForm({ initialData }: { initialData: Profile | null }) {
       location: initialData?.location ?? "",
       avatarUrl: initialData?.avatarUrl,
       skills: initialData?.skills ?? [],
-      facts: initialData?.facts ?? [],
+      skillBars: initialData?.skillBars ?? [],
       stats: initialData?.stats ?? [],
       socialLinks: initialData?.socialLinks ?? [],
     },
@@ -47,7 +47,7 @@ export function ProfileForm({ initialData }: { initialData: Profile | null }) {
       toast.error(result.error ?? "Gagal menyimpan.");
       return;
     }
-    // Clean up the previous avatar from Storage if it was replaced.
+    // Clean up replaced images from Storage.
     if (previousAvatarUrl.current && previousAvatarUrl.current !== values.avatarUrl) {
       void deleteImageAction(previousAvatarUrl.current);
     }
@@ -119,21 +119,17 @@ export function ProfileForm({ initialData }: { initialData: Profile | null }) {
       </div>
 
       <div className="space-y-2">
-        <Label>Fun facts (opsional)</Label>
+        <Label>My Skills (opsional)</Label>
         <p className="text-xs text-muted-foreground">
-          Maks. 160 karakter per fakta. Kalau teksnya panjang, pecah jadi beberapa kalimat pendek dan tekan Enter satu per satu.
+          Bebas isi skill/hobi apa saja dengan persentase 0–100. Tampil sebagai bar chart di halaman About.
         </p>
         <Controller
           control={control}
-          name="facts"
-          render={({ field }) => (
-            <TagInput value={field.value} onChange={field.onChange} ariaLabel="Tambah fun fact" placeholder="Ketik fakta lalu Enter" />
-          )}
+          name="skillBars"
+          render={({ field }) => <SkillBarsEditor value={field.value} onChange={field.onChange} />}
         />
-        {errors.facts && (
-          <p className="text-sm text-destructive">
-            {String(errors.facts.message ?? "Ada fakta yang kepanjangan (maks. 160 karakter) — coba pecah jadi beberapa kalimat lalu Enter satu per satu.")}
-          </p>
+        {errors.skillBars && (
+          <p className="text-sm text-destructive">{String(errors.skillBars.message ?? "Ada skill yang tidak valid.")}</p>
         )}
       </div>
 

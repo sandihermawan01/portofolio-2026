@@ -26,6 +26,28 @@ function normalizeSkills(raw: unknown): SkillEntry[] {
     .filter((s): s is SkillEntry => s !== null);
 }
 
+interface SkillBar {
+  name: string;
+  percentage: number;
+}
+
+function normalizeSkillBars(raw: unknown): SkillBar[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item): SkillBar | null => {
+      if (item && typeof item === "object" && "name" in item && "percentage" in item) {
+        const percentage = Number((item as { percentage: unknown }).percentage);
+        if (!Number.isFinite(percentage)) return null;
+        return {
+          name: String((item as { name: unknown }).name),
+          percentage: Math.min(100, Math.max(0, Math.round(percentage))),
+        };
+      }
+      return null;
+    })
+    .filter((s): s is SkillBar => s !== null);
+}
+
 /** Public read. Returns null if the owner hasn't filled in a profile yet. */
 export async function getProfile(): Promise<Profile | null> {
   const snap = await adminDb.doc(PROFILE_DOC_PATH.join("/")).get();
@@ -38,7 +60,7 @@ export async function getProfile(): Promise<Profile | null> {
     location: data.location ?? undefined,
     avatarUrl: data.avatarUrl ?? undefined,
     skills: normalizeSkills(data.skills),
-    facts: data.facts ?? [],
+    skillBars: normalizeSkillBars(data.skillBars),
     stats: data.stats ?? [],
     socialLinks: data.socialLinks ?? [],
     updatedAt: timestampToIso(data.updatedAt),

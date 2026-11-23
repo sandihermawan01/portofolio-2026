@@ -12,6 +12,11 @@ const statSchema = z.object({
   value: z.string().trim().min(1).max(24),
 });
 
+const skillBarSchema = z.object({
+  name: z.string().trim().min(1).max(40),
+  percentage: z.coerce.number().int().min(0).max(100),
+});
+
 export const profileSchema = z.object({
   name: z.string().trim().min(1, "Nama wajib diisi").max(100),
   role: z.string().trim().min(1, "Role wajib diisi").max(120),
@@ -19,7 +24,7 @@ export const profileSchema = z.object({
   location: z.string().trim().max(120).optional().or(z.literal("")).transform((v) => v || undefined),
   avatarUrl: optionalHttpsUrlSchema,
   skills: z.array(skillSchema).max(40).default([]),
-  facts: z.array(z.string().trim().min(1).max(160)).max(12).default([]),
+  skillBars: z.array(skillBarSchema).max(12).default([]),
   stats: z.array(statSchema).max(6).default([]),
   socialLinks: z.array(socialLinkSchema).max(12).default([]),
 });
@@ -27,6 +32,7 @@ export const profileSchema = z.object({
 export type ProfileInput = z.infer<typeof profileSchema>;
 export type SkillInput = z.infer<typeof skillSchema>;
 export type StatInput = z.infer<typeof statSchema>;
+export type SkillBarInput = z.infer<typeof skillBarSchema>;
 
 export const contactInfoSchema = z.object({
   email: z.string().trim().email("Email tidak valid"),

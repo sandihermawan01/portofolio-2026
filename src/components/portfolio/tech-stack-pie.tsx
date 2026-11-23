@@ -67,7 +67,7 @@ export function TechStackPie({ skills }: { skills: SkillWithShare[] }) {
                 className="font-mono text-[9px]"
                 fill="white"
                 stroke="black"
-                strokeWidth={2.5}
+                strokeWidth={1}
                 paintOrder="stroke"
                 strokeLinejoin="round"
               >
