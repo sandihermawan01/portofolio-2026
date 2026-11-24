@@ -110,7 +110,42 @@ export function NowPinnedList({
   }, [openIndex, projects.length]);
 
   const listRef = React.useRef<HTMLOListElement>(null);
+  const rowRefs = React.useRef<(HTMLLIElement | null)[]>([]);
+  const lastReportedRef = React.useRef<number | null>(null);
   const [reservedHeight, setReservedHeight] = React.useState<number | null>(null);
+
+  // Hit-testing is driven entirely by real pointer movement (`mousemove`),
+  // never by `mouseenter`/`mouseleave` on the rows themselves. Those fire
+  // whenever the browser re-evaluates what's under a *stationary* cursor
+  // too — and since hovering a row resizes it (pushing the rows below up or
+  // down), that resize alone was enough to trigger a fresh enter/leave pair
+  // on whatever row ended up under the now-stationary cursor, which resizes
+  // *that* row, which triggers another pair, and so on: a feedback loop
+  // that's exactly what looked like the list getting "pulled up and
+  // floating" under a fast up/down cursor. Measuring each row's current
+  // `getBoundingClientRect()` only in response to a genuine `mousemove`
+  // breaks that loop — a pure layout shift with no actual pointer motion
+  // no longer re-triggers anything.
+  function handlePointerMove(e: React.MouseEvent<HTMLOListElement>) {
+    const y = e.clientY;
+    for (let i = 0; i < rowRefs.current.length; i++) {
+      const el = rowRefs.current[i];
+      if (!el) continue;
+      const rect = el.getBoundingClientRect();
+      if (y >= rect.top && y < rect.bottom) {
+        if (lastReportedRef.current !== i) {
+          lastReportedRef.current = i;
+          onHoverChange(i);
+        }
+        return;
+      }
+    }
+  }
+
+  function handlePointerLeave() {
+    lastReportedRef.current = null;
+    onHoverChange(null);
+  }
 
   React.useLayoutEffect(() => {
     const el = listRef.current;
@@ -134,17 +169,30 @@ export function NowPinnedList({
         className="relative overflow-hidden"
         style={reservedHeight !== null ? { height: `${reservedHeight}px` } : undefined}
       >
-        <ol ref={listRef} className="absolute inset-x-0 top-0 divide-y divide-border border border-border">
+        <ol
+          ref={listRef}
+          onMouseMove={handlePointerMove}
+          onMouseLeave={handlePointerLeave}
+          className="absolute inset-x-0 top-0 divide-y divide-border border border-border"
+        >
           {projects.map((project, index) => {
             const f = fractionsRef.current[index] ?? 0;
             const isLast = index === lastIndex;
 
             return (
-              <li key={project.id}>
+              <li key={project.id} ref={(el) => { rowRefs.current[index] = el; }}>
                 <Link
                   href={`/project/${project.slug}`}
-                  onMouseEnter={() => onHoverChange(index)}
-                  onMouseLeave={() => onHoverChange(null)}
+                  // `relative` so the absolutely-positioned highlight/accent
+                  // spans below anchor to THIS box, `block` because a
+                  // default inline `<a>` ignores `height`/padding entirely,
+                  // and `overflow-hidden` so a summary that renders at its
+                  // real two-line height (the `maxHeight` below is a
+                  // ceiling, not a guarantee the text is ever that tall)
+                  // gets clipped to this row's own box instead of spilling
+                  // into the row below it — which is what the "missing
+                  // divider / rows look squished" glitch actually was.
+                  className="relative block overflow-hidden px-4"
                   // `height` here, not `minHeight` — `min-height` is only
                   // a *floor*, so once the summary's own `maxHeight`
                   // below grows past that text's real two-line height

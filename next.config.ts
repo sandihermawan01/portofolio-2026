@@ -10,6 +10,15 @@ import type { NextConfig } from "next";
 const isDev = process.env.NODE_ENV !== "production";
 const emulatorConnectSrc = isDev ? " http://127.0.0.1:9099 http://127.0.0.1:8089" : "";
 
+// Newer Next.js dev builds (React's dev-mode error overlay, Turbopack HMR)
+// call eval() for things like reconstructing stack traces across module
+// boundaries — React itself guarantees it never does this in production, so
+// this is safe to allow in dev only. Without it, the page's own CSP (below)
+// blocks the eval() call outright, which is the "eval() is not supported in
+// this environment" console error. Production keeps the strict policy with
+// no 'unsafe-eval' at all.
+const devScriptSrc = isDev ? " 'unsafe-eval'" : "";
+
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
@@ -19,7 +28,7 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
+      `script-src 'self' 'unsafe-inline'${devScriptSrc}`,
       "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
       "font-src 'self' fonts.gstatic.com",
       "img-src 'self' data: https://res.cloudinary.com",
