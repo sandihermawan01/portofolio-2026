@@ -47,6 +47,9 @@ export default async function AdminOverviewPage() {
         <Button asChild variant="outline">
           <Link href="/admin/settings">Pengaturan Contact</Link>
         </Button>
+        <Button asChild variant="outline">
+          <Link href="/admin/cleanup">Bersihkan Data &amp; Gambar</Link>
+        </Button>
       </div>
 
       {/* The "Now" page no longer has its own admin section — it's

@@ -19,6 +19,16 @@ const SKILL_LEVEL_WEIGHT: Record<SkillLevel, number> = {
   profesional: 4,
 };
 
+// Higher level = brighter shade. Shared by anything that colors a skill by
+// its level (the tech stack pie chart and its level-scale legend), so the
+// same level always reads as the same brightness everywhere on the page.
+export const SKILL_LEVEL_SHADE: Record<SkillLevel, number> = {
+  newbie: 0.3,
+  intermediate: 0.52,
+  proper: 0.76,
+  profesional: 1,
+};
+
 export interface SkillEntry {
   name: string;
   level: SkillLevel;

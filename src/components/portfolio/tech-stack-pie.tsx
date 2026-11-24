@@ -1,10 +1,13 @@
 import type { SkillWithShare } from "@/lib/skills";
-import { SKILL_LEVEL_LABEL } from "@/lib/skills";
+import { SKILL_LEVELS, SKILL_LEVEL_LABEL, SKILL_LEVEL_SHADE } from "@/lib/skills";
 
 // A real pie chart, grayscale (no hues — the site is monochrome). Past a
 // handful of entries the tail folds into "Other" so slices stay readable.
+// Slice brightness maps directly to the skill's level (see SKILL_LEVEL_SHADE),
+// so the same level always reads as the same brightness — the scale legend
+// below the chart spells that mapping out.
 const MAX_SLICES = 6;
-const SHADES = [1, 0.8, 0.62, 0.48, 0.34, 0.2];
+const OTHER_SHADE = 0.15;
 const INLINE_LABEL_MIN_PERCENT = 10;
 const SIZE = 220;
 const CENTER = SIZE / 2;
@@ -22,6 +25,27 @@ function slicePath(startAngle: number, endAngle: number) {
   return `M ${CENTER} ${CENTER} L ${start.x} ${start.y} A ${RADIUS} ${RADIUS} 0 ${largeArc} 0 ${end.x} ${end.y} Z`;
 }
 
+/** Low-to-high legend spelling out what each slice shade means. */
+function LevelScale() {
+  return (
+    <div className="mt-6 sm:mt-5">
+      <p className="mb-2 font-mono text-[9px] uppercase tracking-wide text-muted-foreground">Skala warna level</p>
+      <div className="flex items-stretch gap-1.5">
+        {SKILL_LEVELS.map((level) => (
+          <div key={level} className="flex flex-1 flex-col items-center gap-1.5">
+            <span
+              aria-hidden="true"
+              className="h-3 w-full rounded-sm border border-border"
+              style={{ backgroundColor: `hsl(var(--foreground) / ${SKILL_LEVEL_SHADE[level]})` }}
+            />
+            <span className="text-center text-[9px] leading-tight text-muted-foreground">{SKILL_LEVEL_LABEL[level]}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function TechStackPie({ skills }: { skills: SkillWithShare[] }) {
   if (skills.length === 0) return null;
 
@@ -33,33 +57,34 @@ export function TechStackPie({ skills }: { skills: SkillWithShare[] }) {
     : visible;
 
   let angle = 0;
-  const slices = items.map((item, i) => {
+  const slices = items.map((item) => {
     const startAngle = angle;
     const sweep = (item.percentage / 100) * 360;
     angle += sweep;
     const endAngle = angle;
     const mid = (startAngle + endAngle) / 2;
     const labelPos = polarToCartesian(mid, RADIUS * 0.62);
-    return { ...item, startAngle, endAngle, labelPos, shade: SHADES[i] ?? 0.15 };
+    const shade = "level" in item ? SKILL_LEVEL_SHADE[item.level] : OTHER_SHADE;
+    return { ...item, startAngle, endAngle, labelPos, shade };
   });
 
   return (
     <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center">
-      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="h-56 w-56 shrink-0">
+      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="h-56 w-56 shrink-0 overflow-visible">
         {slices.map((slice) => (
-          <path
+          <g
             key={slice.name}
-            d={slicePath(slice.startAngle, slice.endAngle)}
-            fill={`hsl(var(--foreground) / ${slice.shade})`}
-            stroke="hsl(var(--background))"
-            strokeWidth={3}
-          />
-        ))}
-        {slices.map(
-          (slice) =>
-            slice.percentage >= INLINE_LABEL_MIN_PERCENT && (
+            className="cursor-default transition-transform duration-300 ease-out hover:scale-110"
+            style={{ transformOrigin: `${CENTER}px ${CENTER}px` }}
+          >
+            <path
+              d={slicePath(slice.startAngle, slice.endAngle)}
+              fill={`hsl(var(--foreground) / ${slice.shade})`}
+              stroke="hsl(var(--background))"
+              strokeWidth={3}
+            />
+            {slice.percentage >= INLINE_LABEL_MIN_PERCENT && (
               <text
-                key={`${slice.name}-label`}
                 x={slice.labelPos.x}
                 y={slice.labelPos.y}
                 textAnchor="middle"
@@ -73,23 +98,28 @@ export function TechStackPie({ skills }: { skills: SkillWithShare[] }) {
               >
                 {slice.name}
               </text>
-            )
-        )}
+            )}
+          </g>
+        ))}
       </svg>
 
-      <ul className="grid flex-1 grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-2">
-        {slices.map((slice) => (
-          <li key={slice.name} className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span
-              aria-hidden="true"
-              className="h-2.5 w-2.5 shrink-0 border border-border"
-              style={{ backgroundColor: `hsl(var(--foreground) / ${slice.shade})` }}
-            />
-            <span className="truncate">{slice.name}</span>
-            {"level" in slice && <span className="font-mono underline underline-offset-2">{SKILL_LEVEL_LABEL[slice.level]}</span>}
-          </li>
-        ))}
-      </ul>
+      <div className="flex-1">
+        <ul className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-2">
+          {slices.map((slice) => (
+            <li key={slice.name} className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span
+                aria-hidden="true"
+                className="h-2.5 w-2.5 shrink-0 border border-border"
+                style={{ backgroundColor: `hsl(var(--foreground) / ${slice.shade})` }}
+              />
+              <span className="truncate">{slice.name}</span>
+              {"level" in slice && <span className="font-mono underline underline-offset-2">{SKILL_LEVEL_LABEL[slice.level]}</span>}
+            </li>
+          ))}
+        </ul>
+
+        <LevelScale />
+      </div>
     </div>
   );
 }

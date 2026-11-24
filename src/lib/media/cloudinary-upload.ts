@@ -141,6 +141,51 @@ function extractPublicId(url: string): string | null {
   return match?.[1] ?? null;
 }
 
+export interface CloudinaryResource {
+  publicId: string;
+  url: string;
+  bytes: number;
+  createdAt: string;
+}
+
+/** Lists every image actually sitting in a given upload folder, straight from
+ * Cloudinary's Admin API — the source of truth for "what's really there",
+ * independent of whatever Firestore currently references. Used by the admin
+ * cleanup feature to find orphaned uploads (replaced images, abandoned
+ * drafts) that were never deleted. Paginates via `next_cursor` since the API
+ * caps each page at 500 resources. */
+export async function listCloudinaryResources(folder: "avatars" | "projects"): Promise<CloudinaryResource[]> {
+  const { cloudName, apiKey, apiSecret } = cloudinaryConfig();
+  const auth = Buffer.from(`${apiKey}:${apiSecret}`).toString("base64");
+  const results: CloudinaryResource[] = [];
+  let nextCursor: string | undefined;
+
+  do {
+    const params = new URLSearchParams({ prefix: `${folder}/`, max_results: "500", type: "upload" });
+    if (nextCursor) params.set("next_cursor", nextCursor);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/resources/image/upload?${params}`, {
+      headers: { Authorization: `Basic ${auth}` },
+    });
+
+    if (!res.ok) {
+      console.error("Cloudinary list failed", res.status, await res.text().catch(() => ""));
+      throw new Error("Gagal mengambil daftar gambar dari Cloudinary.");
+    }
+
+    const json = (await res.json()) as {
+      resources: { public_id: string; secure_url: string; bytes: number; created_at: string }[];
+      next_cursor?: string;
+    };
+    results.push(
+      ...json.resources.map((r) => ({ publicId: r.public_id, url: r.secure_url, bytes: r.bytes, createdAt: r.created_at }))
+    );
+    nextCursor = json.next_cursor;
+  } while (nextCursor);
+
+  return results;
+}
+
 function matchesMagicBytes(buffer: Buffer, mime: string): boolean {
   const bytes = buffer.subarray(0, 12);
   switch (mime) {
