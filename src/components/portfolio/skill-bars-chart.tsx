@@ -24,7 +24,7 @@ export function SkillBarsChart({ skills }: { skills: SkillBar[] }) {
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry?.isIntersecting) {
           setVisible(true);
           observer.disconnect();
         }
