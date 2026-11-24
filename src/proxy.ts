@@ -10,7 +10,7 @@ import { SESSION_COOKIE_NAME } from "@/lib/auth-constants";
  * (see lib/firebase/auth.ts), which does the real, cryptographically
  * verified check. Never add admin logic here beyond this redirect.
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hasSessionCookie = request.cookies.has(SESSION_COOKIE_NAME);
 

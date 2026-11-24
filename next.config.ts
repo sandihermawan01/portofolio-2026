@@ -33,9 +33,11 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  eslint: {
-    ignoreDuringBuilds: false,
-  },
+  // `eslint.ignoreDuringBuilds` used to live here — newer Next.js versions
+  // dropped support for configuring ESLint from next.config.ts entirely
+  // (lint is no longer run as part of `next build` by default at all), so
+  // there's nothing to set here anymore. `npm run lint` still runs it
+  // explicitly via eslint.config.mjs, same as before.
   // firebase-admin (and its transitive deps: google-auth-library,
   // google-gax/protobufjs, jwks-rsa, …) use Node built-ins and
   // eval-based codegen that only work under the Node.js runtime, never
