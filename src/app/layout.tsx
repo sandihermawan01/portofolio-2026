@@ -4,6 +4,7 @@ import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { RouteProgressBar } from "@/components/layout/route-progress-bar";
+import { TranslateRoot } from "@/components/i18n/translate-root";
 import { clientEnv } from "@/config/env";
 
 const THEME_INIT_SCRIPT = `
@@ -59,7 +60,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <Script id="theme-init" strategy="beforeInteractive">
           {THEME_INIT_SCRIPT}
@@ -69,8 +70,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="grain-overlay" aria-hidden="true" />
         <div className="crt-overlay" aria-hidden="true" />
         <RouteProgressBar />
-        {children}
-        <Toaster />
+        <TranslateRoot>
+          {children}
+          <Toaster />
+        </TranslateRoot>
       </body>
     </html>
   );

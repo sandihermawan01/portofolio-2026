@@ -347,8 +347,29 @@ export function DeveloperHero({ name, role, skills = [] }: { name: string; role:
           className="motion-safe:animate-fade-in-up mt-4 max-w-4xl font-display text-4xl font-semibold leading-tight tracking-tight sm:text-6xl lg:text-7xl"
           style={{ animationDelay: "260ms" }}
         >
-          {typedTagline}
-          {!doneTyping && <span className="motion-safe:animate-blink">_</span>}
+          {doneTyping ? (
+            // Only handed to the site-wide auto-translate once typing is
+            // fully done and the text is stable. Different `key` forces
+            // React to mount a brand-new text node here instead of
+            // continuing to mutate the typing one, so the translator sees
+            // one fresh, complete string with no stale cache from the
+            // fragments it was never meant to see.
+            <span key="tagline-final">{TAGLINE}</span>
+          ) : (
+            // While typing, this text changes every ~28ms — incompatible
+            // with the translator, which watches the DOM and fires a
+            // translate call on every change. It was firing on
+            // half-typed fragments, and the async replies raced the
+            // animation and landed after typing finished, overwriting the
+            // completed headline with a translation of a one- or
+            // two-character fragment (what made it go blank after a
+            // language switch). `data-no-translate` keeps it out entirely
+            // until typing is done.
+            <span data-no-translate key="tagline-typing">
+              {typedTagline}
+              <span className="motion-safe:animate-blink">_</span>
+            </span>
+          )}
         </h1>
 
         <div
