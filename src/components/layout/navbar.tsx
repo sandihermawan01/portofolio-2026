@@ -11,6 +11,8 @@ import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { SoundToggle } from "@/components/layout/sound-toggle";
 import { CrtToggle } from "@/components/layout/crt-toggle";
 import { HamburgerIcon } from "@/components/layout/hamburger-icon";
+import { LanguageToggle } from "@/components/i18n/language-toggle";
+import { NavbarSettings } from "@/components/layout/navbar-settings";
 
 const BASE_NAV_ITEMS = [
   { href: "/about", label: "About" },
@@ -60,11 +62,15 @@ export function Navbar({ ownerName, showGithubLink = false }: { ownerName: strin
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="container-editorial flex h-16 items-center justify-between">
-        <Link href="/" className="font-display text-base font-semibold tracking-tight">
+        <Link
+          href="/"
+          className="font-display text-base font-semibold tracking-tight"
+          data-no-translate
+        >
           {ownerName || "Portfolio"}
         </Link>
 
-        <nav aria-label="Navigasi utama" className="hidden items-center gap-1 md:flex">
+        <nav aria-label="Navigasi utama" className="hidden items-center gap-1 md:flex" data-no-translate>
           {NAV_ITEMS.map((item) => {
             const active = pathname === item.href || pathname?.startsWith(item.href + "/");
             return (
@@ -94,16 +100,16 @@ export function Navbar({ ownerName, showGithubLink = false }: { ownerName: strin
             <Search className="h-4 w-4" aria-hidden="true" />
           </button>
 
-          {/* Sound/CRT toggles are experimental extras — kept off the
-              always-visible mobile row (which is already search + theme +
-              hamburger) and surfaced on desktop here, plus inside the
-              mobile Sheet below so they're still reachable on phones. */}
+          {/* Desktop: Sound/CRT stay as their own icon buttons (they match
+              each other); Language/Theme collapse into one "Settings"
+              popover since those two already share the pill-with-label
+              style. The mobile Sheet below is untouched — it already lists
+              all four the same way, just inline. */}
           <div className="hidden items-center gap-2 md:flex">
             <SoundToggle />
             <CrtToggle />
+            <NavbarSettings />
           </div>
-
-          <ThemeToggle />
 
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
@@ -117,8 +123,8 @@ export function Navbar({ ownerName, showGithubLink = false }: { ownerName: strin
               </Button>
             </SheetTrigger>
             <SheetContent>
-              <SheetTitle>Menu</SheetTitle>
-              <nav aria-label="Navigasi mobile" className="mt-8 flex flex-col gap-1">
+              <SheetTitle data-no-translate>Menu</SheetTitle>
+              <nav aria-label="Navigasi mobile" className="mt-8 flex flex-col gap-1" data-no-translate>
                 {NAV_ITEMS.map((item) => {
                   const active = pathname === item.href || pathname?.startsWith(item.href + "/");
                   return (
@@ -138,9 +144,11 @@ export function Navbar({ ownerName, showGithubLink = false }: { ownerName: strin
                 })}
               </nav>
 
-              <div className="mt-6 flex items-center gap-2 border-t border-border pt-6">
+              <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-border pt-6">
+                <LanguageToggle />
                 <SoundToggle />
                 <CrtToggle />
+                <ThemeToggle />
               </div>
             </SheetContent>
           </Sheet>
