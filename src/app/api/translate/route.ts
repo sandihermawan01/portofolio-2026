@@ -37,6 +37,7 @@ const ID_STOPWORDS = new Set([
   "selesai", "batal", "proyek", "pengalaman", "keahlian", "tentang", "kontak", "beranda", "sekarang",
   "aktif", "jeda", "direncanakan", "aktifkan", "matikan", "pengaturan", "tampilan", "bahasa", "masuk",
   "keluar", "daftar", "cari", "unggah", "unduh", "publikasikan", "muncul", "dipublikasikan", "artikel",
+  "skala", "warna", "deskripsi", "ringkas", "ringkasan", "status", "jenis", "ukuran", "urutan",
 ]);
 const EN_STOPWORDS = new Set([
   "the", "and", "is", "are", "was", "were", "this", "that", "with", "for", "not", "have", "has", "had",
@@ -57,6 +58,16 @@ function guessLang(text: string): Lang {
   for (const w of words) {
     if (ID_STOPWORDS.has(w)) idScore++;
     if (EN_STOPWORDS.has(w)) enScore++;
+  }
+  if (idScore === enScore) {
+    // A tie with signals on BOTH sides (e.g. "Project Selesai" — an
+    // English noun plus a recognized Indonesian word) is a mixed label
+    // built on Indonesian structure with a borrowed English word, so it
+    // leans "id". A tie with NO signal at all (neither list matched
+    // anything — a short English header like "EXPERIENCE", or any other
+    // unlisted word) keeps the original "en" default, since that's this
+    // site's safer fallback for a genuinely unrecognized short string.
+    return idScore > 0 ? "id" : "en";
   }
   return idScore > enScore ? "id" : "en";
 }
